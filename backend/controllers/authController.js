@@ -131,7 +131,7 @@ const signin = async (req, res) => {
 
 
 const refreshAccessToken = async (req, res) => {
-    const refreshToken = req.cookies.refreshToken;
+    const {refreshToken} = req.cookies;
     if (!refreshToken) {
         return res.status(401).json({
             success: false,
@@ -175,12 +175,11 @@ const refreshAccessToken = async (req, res) => {
 const logout = async (req, res) => {
     try {
 
-        const refreshToken = req.cookies.refreshToken;
-        const user = await User.findOne({ refreshToken });
-
-        if (user) {
-            user.refreshToken = null;
-            await user.save();
+        const {refreshToken} = req.cookies;
+        if(refreshToken){
+            await User.findByIdAndUpdate({req.user.id},{
+                $pull: {refreshToken}
+            });
         }
 
         res.clearCookie("refreshToken");
