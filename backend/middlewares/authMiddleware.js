@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-const authProtecter = async (req, res, next) => {
+const authProtector = async (req, res, next) => {
     const token = req.cookies.accessToken;
 
     if(!token){
@@ -44,4 +44,4 @@ const authorizeRoles = (...roles) => {
     }
 }
 
-module.exports = {authProtecter, authorizeRoles}
+module.exports = {authProtector, authorizeRoles}

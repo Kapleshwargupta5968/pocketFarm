@@ -1,6 +1,7 @@
 const Subscription = require("../models/subscription");
 const Plot = require("../models/plot");
 const subscription = require("../models/subscription");
+const { createNotification } = require("../services/notificationServices");
 
 const subscribePlot = async (req, res) => {
     try{
@@ -24,7 +25,7 @@ const subscribePlot = async (req, res) => {
         const startDate = new Date();
         const endDate = new Date();
 
-        endDate.setData(startDate.getDate() + duration);
+        endDate.setDate(startDate.getDate() + duration);
 
         const subscription = await Subscription.create({
             user: req.user._id,
@@ -35,6 +36,13 @@ const subscribePlot = async (req, res) => {
 
         plot.status = "Subscribed";
         await plot.save();
+
+        await createNotification({
+            user:req.user._id,
+            title:"Subscription Successfull",
+            message:`You have successfully subscribed to plot ${plot.plotNumber} for ${duration} days`,
+            type:"SUBSCRIPTION"
+        });
 
         return res.status(200).json({
             success:true,
@@ -96,6 +104,13 @@ const cancelSubscription = async (req, res) => {
         const plot = await Plot.findById(subscription.plot);
         plot.status = "Available";
         await plot.save();
+
+        await createNotification({
+            user:req.user._id,
+            title:"Subscription Cancelled",
+            message:`Your subscription to plot ${plot.plotNumber} has been cancelled successfully`,
+            type:"SUBSCRIPTION"
+        });
 
         return res.status(200).json({
             success:true,

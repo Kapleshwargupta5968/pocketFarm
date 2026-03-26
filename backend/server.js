@@ -8,13 +8,14 @@ const cookiesParser = require("cookie-parser");
 const connectDB = require("./config/database");
 connectDB();
 
-const cron = require("./crons/subscriptionCron");
-
-cron();
+require("./crons/subscriptionCron");
 
 const authRoutes = require("./routes/authRoutes");
 const plotRoutes = require("./routes/plotRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const updateRoutes = require("./routes/updateRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 app.use(express.json());
 app.use(cors({
@@ -22,9 +23,15 @@ app.use(cors({
     credentials:true
 }));
 app.use(cookiesParser());
+
+
 app.use("/api/auth", authRoutes);
 app.use("/api/plots", plotRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/updates", updateRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is listening on this ${process.env.PORT} port`);

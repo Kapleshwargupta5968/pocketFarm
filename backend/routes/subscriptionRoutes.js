@@ -1,13 +1,13 @@
-const express = require(express);
+const express = require("express");
 const router = express.Router();
 const {subscribePlot,
     getSubscriptions,
     cancelSubscription} = require("../controllers/subscriptionController");
 
-    const {autProtector} = require("../middlewares/authMiddleware");
+    const {authProtector} = require("../middlewares/authMiddleware");
 
-    router.post("/subscribe", autProtector, subscribePlot);
-    router.get("/", autProtector, getSubscriptions);
-    router.delete("/:id/cancel", autProtector, cancelSubscription);
+    router.post("/subscribe", authProtector, subscribePlot);
+    router.get("/", authProtector, getSubscriptions);
+    router.delete("/:id/cancel", authProtector, cancelSubscription);
 
     module.exports = router;
