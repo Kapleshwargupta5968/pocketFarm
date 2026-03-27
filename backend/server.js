@@ -16,6 +16,7 @@ const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const updateRoutes = require("./routes/updateRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const paymentRoutes = require("./routes/razorpayRoutes");
 
 app.use(express.json());
 app.use(cors({
@@ -31,7 +32,7 @@ app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/updates", updateRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-
+app.use("/api/payment", paymentRoutes);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is listening on this ${process.env.PORT} port`);
