@@ -8,7 +8,7 @@ const {createNotification} = require("../services/notificationServices");
 
 const createOrder = async (req, res) => {
     try{
-        const {plotId} = req.body;
+        const {plotId, duration} = req.body;
         if(!plotId || !mongoose.Types.ObjectId.isValid(plotId)){
             return res.status(404).json({
                 success:false,
@@ -46,7 +46,8 @@ const createOrder = async (req, res) => {
             amount:plot.price,
             currency:"INR",
             razorpayOrderId:order.id,
-            status:"Pending"
+            status:"Pending",
+            duration:duration
         })
 
         return res.status(200).json({
@@ -79,12 +80,7 @@ const verifyPayment = async (req, res) => {
         .update(body)
         .digest("hex");
 
-        if(expectedSignature !== razorpay_signature){
-            return res.status(400).json({
-                success:false,
-                message:"Payment verification failed"
-            });
-        }
+
 
         const payment = await Payment.findOne({
             razorpayOrderId:razorpay_order_id
@@ -97,6 +93,17 @@ const verifyPayment = async (req, res) => {
             });
         }
 
+        if(expectedSignature !== razorpay_signature){
+            payment.status = "Failed";
+            payment.failureReason = "Invalid signature";
+            await payment.save();
+
+            return res.status(400).json({
+                success:false,
+                message:"Payment verification failed"
+            });
+        }
+
         if(payment.user.toString() !== req.user._id.toString()){
             return res.status(403).json({
                 success:false,
@@ -104,7 +111,7 @@ const verifyPayment = async (req, res) => {
             });
         }
 
-        if(payment.status === "Paid"){
+        if(payment.status === "Success"){
             return res.status(400).json({
                 success:false,
                 message:"Payment already processed"
@@ -125,12 +132,12 @@ const verifyPayment = async (req, res) => {
 
         payment.razorpayPaymentId = razorpay_payment_id;
         payment.razorpaySignature = razorpay_signature;
-        payment.status = "Paid";
+        payment.status = "Success";
         await payment.save();
 
         const startDate = new Date();
         const endDate = new Date();
-        endDate.setDate(startDate.getDate() + duration);
+        endDate.setDate(startDate.getDate() + Number(duration));
 
         const subscription = await Subscription.create({
             user: req.user._id,
@@ -189,7 +196,7 @@ const getMyPayment = async (req, res) => {
 
 const getPaymentById = async (req, res) => {
     try{
-        const {paymentId} = req.params.id;
+        const paymentId = req.params.id;
         if(!mongoose.Types.ObjectId.isValid(paymentId)){
             return res.status(400).json({
                 success:false,
@@ -225,11 +232,205 @@ const getPaymentById = async (req, res) => {
             message:`Internal server error, due to this ${error.message} reason`
         })
     }
-}
+};
+
+const handleWebhook = async (req, res) => {
+    try {
+        const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+        const signature = req.headers["x-razorpay-signature"];
+        
+        const payloadString = req.body.toString();
+
+        const expectedSignature = crypto
+            .createHmac("sha256", secret)
+            .update(payloadString)
+            .digest("hex");
+
+        if (expectedSignature !== signature) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid webhook signature"
+            });
+        }
+
+        const event = JSON.parse(payloadString);
+
+        if (event.event === "payment.captured") {
+            const paymentData = event.payload.payment.entity;
+            const razorpay_order_id = paymentData.order_id;
+            const razorpay_payment_id = paymentData.payment_id;
+
+            const payment = await Payment.findOne({
+                razorpayOrderId: razorpay_order_id
+            });
+
+            if (!payment) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Payment not found"
+                });
+            }
+
+            if (payment.status === "Success") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Payment already processed"
+                });
+            }
+
+            const existingSubscription = await Subscription.findOne({
+                plot: payment.plot,
+                status: "Active"
+            });
+
+            if (existingSubscription) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You have already subscribed to this plot"
+                });
+            }
+
+            payment.razorpayPaymentId = razorpay_payment_id;
+            payment.razorpaySignature = signature;
+           
+            payment.status = "Success"; 
+            await payment.save();
+
+            const startDate = new Date();
+            const endDate = new Date();
+            
+            endDate.setDate(startDate.getDate() + (payment.duration || 30));
+
+            await Subscription.create({
+                user: payment.user,
+                plot: payment.plot,
+                startDate,
+                endDate
+            });
+
+            const plot = await Plot.findById(payment.plot);
+            if (plot) {
+                plot.status = "Subscribed";
+                await plot.save();
+            }
+
+            await createNotification({
+                user: payment.user,
+                title: "Payment Successfull 🎉",
+                type: "SUBSCRIPTION",
+                message: plot ? `Your subscription to plot ${plot.plotNumber} has been confirmed` : "Your subscription has been confirmed",
+                plot: payment.plot
+            });
+
+        } else if (event.event === "payment.failed") {
+            const paymentData = event.payload.payment.entity;
+            const payment = await Payment.findOne({
+                razorpayOrderId: paymentData.order_id
+            });
+            
+            if (payment) {
+                payment.status = "Failed";
+                payment.failureReason = paymentData.error_description || "Payment failed";
+                await payment.save();
+                
+                await createNotification({
+                    user: payment.user,
+                    title: "Payment Failed ❌",
+                    type: "SUBSCRIPTION",
+                    message: "Your payment has been failed, please retry after sometimes",
+                    plot: payment.plot
+                });
+            }
+        }
+        
+        return res.status(200).json({
+            success: true,
+            message: "Webhook processed successfully"
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Internal server error: ${error.message}`
+        });
+    }
+};
+
+const retryPayment = async (req, res) => {
+    try{
+        const paymentId = req.params.id;
+
+        if(!mongoose.Types.ObjectId.isValid(paymentId)){
+            return res.status(400).json({
+                success:false,
+                message:"Invalid payment ID"
+            })
+        }
+
+        const payment = await Payment.findById(paymentId);
+        if(!payment){
+            return res.status(404).json({
+                success:false,
+                message:"Payment not found"
+            });
+        }
+
+        if(payment.user.toString() !== req.user._id.toString()){
+            return res.status(403).json({
+                success:false,
+                message:"Unauthorized"
+            })
+        }
+
+        if(payment.status === "Success"){
+            return res.status(400).json({
+                success:false,
+                message:"Payment already completed"
+            });
+        }
+
+        const plot = await Plot.findById(payment.plot);
+        if(!plot){
+            return res.status(404).json({
+                success:false,
+                message:"Plot not found"
+            });
+        }
+        if(plot.status === "Subscribed"){
+            return res.status(400).json({
+                success:false,
+                message:"Plot already subscribed"
+            });
+        }
+
+        const newOrder = await razorpay.orders.create({
+            amount:plot.price * 100,
+            currency:"INR",
+            receipt:`payment_${Date.now()}`
+        });
+
+        payment.razorpayOrderId = newOrder.id;
+        payment.amount = newOrder.amount / 100;
+        await payment.save();
+
+        return res.status(200).json({
+            success:true,
+            message:"Payment retried successfully",
+            order:newOrder
+        });
+    }catch(error){
+        return res.status(500).json({
+            success:false,
+            message:`Internal server error: ${error.message}`
+        });
+    }
+};
 
 module.exports = {
     createOrder,
     verifyPayment,
     getMyPayment,
-    getPaymentById
+    getPaymentById,
+    handleWebhook,
+    retryPayment
 };

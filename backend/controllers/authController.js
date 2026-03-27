@@ -178,7 +178,7 @@ const logout = async (req, res) => {
         const {refreshToken} = req.cookies;
         if(refreshToken){
             await User.findByIdAndUpdate(req.user.id,{
-                $pull: {refreshToken}
+                $unset: {refreshToken: 1}
             });
         }
 

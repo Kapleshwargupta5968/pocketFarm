@@ -25,7 +25,7 @@ const subscribePlot = async (req, res) => {
         const startDate = new Date();
         const endDate = new Date();
 
-        endDate.setDate(startDate.getDate() + duration);
+        endDate.setDate(startDate.getDate() + Number(duration));
 
         const subscription = await Subscription.create({
             user: req.user._id,

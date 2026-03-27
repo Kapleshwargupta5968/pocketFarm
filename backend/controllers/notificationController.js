@@ -50,7 +50,7 @@ const markAsRead = async (req, res) => {
         notification.isRead = true;
         await notification.save();
 
-        return res.status(200).json*({
+        return res.status(200).json({
             success:true,
             message:"Notification marked as read"
         });

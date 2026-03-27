@@ -23,18 +23,24 @@ const paymentSchema = new mongoose.Schema({
         required:true
     },
     razorpayPaymentId:{
-        type:String,
-        required:true
+        type:String
     },
     razorpaySignature:{
-        type:String,
+        type:String
+    },
+    duration:{
+        type:Number,
         required:true
     },
     status:{
         type:String,
-        enum:["pending","success","failed"],
-        default:"pending"
+        enum:["Pending","Success","Failed"],
+        default:"Pending"
     },
+    failureReason:{
+        type:String,
+        default:""
+    }
 }, {timestamps:true});
 
 module.exports = mongoose.model("Payment",paymentSchema);

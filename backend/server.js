@@ -18,13 +18,16 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const paymentRoutes = require("./routes/razorpayRoutes");
 
+app.use("/api/payment/webhook", express.raw({
+    type:"application/json"
+}));
+
 app.use(express.json());
 app.use(cors({
     origin:"http://localhost:5173",
     credentials:true
 }));
 app.use(cookiesParser());
-
 
 app.use("/api/auth", authRoutes);
 app.use("/api/plots", plotRoutes);

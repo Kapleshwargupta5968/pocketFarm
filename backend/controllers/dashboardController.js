@@ -5,7 +5,7 @@ const Subscription = require("../models/subscription");
 const getDashboardStats = async (req, res) => {
     try {
         const totalUsers = await User.countDocuments();
-        const totalPlots = await User.countDocuments();
+        const totalPlots = await Plot.countDocuments();
         const totalSubscriptions = await Subscription.countDocuments();
         const activeSubscriptions = await Subscription.countDocuments(
             {
@@ -20,7 +20,7 @@ const getDashboardStats = async (req, res) => {
             {
                 $lookup: {
                     from: "plots",
-                    locateFields: "plots",
+                    localField: "plot",
                     foreignField: "_id",
                     as: "plotDetails"
                 }
