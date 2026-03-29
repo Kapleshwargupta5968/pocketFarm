@@ -1,0 +1,7 @@
+.btn-primary {
+  @apply bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700;
+}
+
+.card {
+  @apply bg-white shadow-md rounded-xl p-4;
+}
