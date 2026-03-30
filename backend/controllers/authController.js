@@ -37,11 +37,17 @@ const signup = async (req, res) => {
 
         user.refreshToken = refreshToken;
         await user.save();
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 15 * 60 * 1000
+        });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -102,10 +108,17 @@ const signin = async (req, res) => {
         user.refreshToken = refreshToken;
         await user.save();
 
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 15 * 60 * 1000
+        });
+
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -159,6 +172,13 @@ const refreshAccessToken = async (req, res) => {
 
         const newAccessToken = generateAccessToken(payload);
 
+        res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 15 * 60 * 1000
+        });
+
         return res.status(200).json({
             success: true,
             accessToken: newAccessToken
@@ -182,6 +202,7 @@ const logout = async (req, res) => {
             });
         }
 
+        res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
 
         return res.status(200).json({
@@ -198,8 +219,8 @@ const logout = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
-        if(!user || user._id !== req.user.id){
+        const user = req.user;
+        if(!user){
             return res.status(404).json({
                 success:false,
                 message:"User not found"

@@ -5,9 +5,11 @@ import {loginUser} from '../../services/authService';
 import FormWrapper from '../../components/common/FormWrapper'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button';
-
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 const Signin = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const {loading, error} = useSelector((state) => state.auth);
 
     const {register, handleSubmit, formState:{errors}} = useForm();
@@ -17,8 +19,11 @@ const Signin = () => {
             dispatch(authStart());
             const response = await loginUser(data);
             dispatch(authSuccess(response?.user));
+            toast.success(response?.user || "User login successfully");
+            navigate("/dashboard");
         }catch(error){
             dispatch(authFailure(error?.response?.data?.message || "Login failed, please try again."));
+            toast.error(error?.response?.data?.message || "Login failed, please try again.");
         }
     }
 
@@ -30,6 +35,7 @@ const Signin = () => {
         type="email"
         name="email"
         placeholder="Enter your email"
+        autoComplete="email"
         register={register}
         rules={{
             required:"Email is required",
@@ -45,6 +51,7 @@ const Signin = () => {
         type="password"
         name="password"
         placeholder="Enter your password"
+        autoComplete="current-password"
         register={register}
         rules={{
             required:"Password is required",    

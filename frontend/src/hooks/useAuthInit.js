@@ -13,8 +13,8 @@ const useAuthInit = () => {
                 dispatch(authStart());
                 const response = await getMe();
                 dispatch(authSuccess(response));
-            }catch(error){
-                dispatch(authFailure(error?.response?.data?.message || "Failed to authenticate"));
+            } catch (error) {
+                dispatch(authFailure(null));
             } finally {
                 setIsInitialized(true);
             }

@@ -5,7 +5,8 @@ const Input = ({
     register,
     name,
     rules,
-    error
+    error,
+    autoComplete
 }) => {
   return (
     <>
@@ -14,6 +15,7 @@ const Input = ({
         <input
         type={type}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         {...register(name, rules)}
         className="border p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus-ring-green-500"
         />

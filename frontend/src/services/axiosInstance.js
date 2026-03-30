@@ -17,10 +17,33 @@ axiosInstance.interceptors.request.use((config)=>{
 
 axiosInstance.interceptors.response.use((response) => {
     return response;
-}, (error) => {
-    if(error?.response?.status === 401){
-        window.location.replace("/signin");
+}, async (error) => {
+    const originalRequest = error.config;
+
+    if (error?.response?.status === 401 && !originalRequest._retry) {
+        const publicPaths = ['/signin', '/signup'];
+        const isAuthEndpoint = originalRequest.url && originalRequest.url.includes('/auth/me');
+        const isRefreshEndpoint = originalRequest.url && originalRequest.url.includes('/auth/refreshToken');
+        
+        if (isRefreshEndpoint) {
+            if (!publicPaths.includes(window.location.pathname)) {
+                window.location.replace("/signin");
+            }
+            return Promise.reject(error);
+        }
+
+        originalRequest._retry = true;
+        try {
+            await axios.post("http://localhost:5000/api/auth/refreshToken", {}, { withCredentials: true });
+            return axiosInstance(originalRequest);
+        } catch (refreshError) {
+            if (!publicPaths.includes(window.location.pathname) && !isAuthEndpoint) {
+                 window.location.replace("/signin");
+            }
+            return Promise.reject(refreshError);
+        }
     }
+
     return Promise.reject(error);
 });
 

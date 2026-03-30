@@ -5,6 +5,7 @@ import {authStart, authFailure, authSuccess} from "../../features/auth/authSlice
 import {registerUser} from "../../services/authService";
 import Button from "../../components/common/Button";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 const Signup = () => {
     const dispatch = useDispatch();
     const {loading, error} = useSelector((state)=> state.auth);
@@ -16,8 +17,10 @@ const Signup = () => {
             dispatch(authStart());
             const response = await registerUser(data);
             dispatch(authSuccess(response?.user));
+            toast.success(response?.message || "User registered successfully");
         }catch(error){
             dispatch(authFailure(error?.response?.data?.message || "Failed to register user"));
+            toast.error(error?.response?.data?.message || "Failed to register user");
         }
     }
   return (
@@ -28,6 +31,7 @@ const Signup = () => {
         label="Name"
         name="name"
         placeholder="Enter your name"
+        autoComplete="name"
         register={register}
         rules={{
             required:"Name is required",
@@ -43,6 +47,7 @@ const Signup = () => {
         label="Email"
         name="email"
         placeholder="Enter your email"
+        autoComplete="email"
         register={register}
         rules={{
             required:"Email is required",
@@ -58,6 +63,7 @@ const Signup = () => {
         label="Password"
         name="password"
         placeholder="Enter your password"
+        autoComplete="new-password"
         register={register}
         rules={{
             required:"Password is required",
