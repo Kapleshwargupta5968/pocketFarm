@@ -1,19 +1,135 @@
-const User = require("../models/user");
 const Plot = require("../models/plot");
 const Subscription = require("../models/subscription");
 
 const getDashboardStats = async (req, res) => {
     try {
-        const totalUsers = await User.countDocuments();
-        const totalPlots = await Plot.countDocuments();
-        const totalSubscriptions = await Subscription.countDocuments();
-        const activeSubscriptions = await Subscription.countDocuments(
-            {
-                status: "Active"
-            }
-        );
+        const user = req.user;
 
-        const totalRevenueData = await Subscription.aggregate([
+        if (user.role === "Farmer") {
+            const totalPlots = await Plot.countDocuments({ farmer: user._id });
+            
+            const activeSubscriptions = await Subscription.aggregate([
+                {
+                    $lookup: {
+                        from: "plots",
+                        localField: "plot",
+                        foreignField: "_id",
+                        as: "plotDetails"
+                    }
+                },
+                {
+                    $unwind: "$plotDetails"
+                },
+                {
+                    $match: {
+                        "plotDetails.farmer": user._id,
+                        status: "Active"
+                    }
+                },
+                {
+                    $count: "count"
+                }
+            ]);
+
+            const earningData = await Subscription.aggregate([
+                {
+                    $lookup: {
+                        from: "plots",
+                        localField: "plot",
+                        foreignField: "_id",
+                        as: "plotDetails"
+                    }
+                },
+                {
+                    $unwind: "$plotDetails"
+                },
+                {
+                    $match: {
+                        "plotDetails.farmer": user._id,
+                        status: "Active"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalEarnings: { $sum: "$amount" }
+                    }
+                }
+            ]);
+
+            const activeCount = activeSubscriptions.length > 0 ? activeSubscriptions[0].count : 0;
+            const earnings = earningData.length > 0 ? earningData[0].totalEarnings : 0;
+
+            return res.status(200).json({
+                success: true,
+                totalPlots,
+                activeSubscriptions: activeCount,
+                earnings,
+                pendingRequests: 0
+            });
+        }
+
+        if (user.role === "Subscriber") {
+            const subscribedPlots = await Subscription.countDocuments({
+                user: user._id,
+                status: "Active"
+            });
+
+            const activePlans = await Subscription.countDocuments({
+                user: user._id,
+                status: "Active"
+            });
+
+            const spendingData = await Subscription.aggregate([
+                {
+                    $match: {
+                        user: user._id,
+                        status: "Active"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalSpent: { $sum: "$amount" }
+                    }
+                }
+            ]);
+
+            const totalSpent = spendingData.length > 0 ? spendingData[0].totalSpent : 0;
+
+            return res.status(200).json({
+                success: true,
+                subscribedPlots,
+                activePlans,
+                totalSpent
+            });
+        }
+
+        return res.status(403).json({
+            success: false,
+            message: "Unauthorized access"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Internal server error, due to this ${error.message} reason`
+        });
+    }
+};
+
+const getEarningData = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (user.role !== "Farmer") {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized access"
+            });
+        }
+
+        const earnings = await Subscription.aggregate([
             {
                 $match: { status: "Active" }
             },
@@ -29,22 +145,148 @@ const getDashboardStats = async (req, res) => {
                 $unwind: "$plotDetails"
             },
             {
-                $group: {
-                    _id: null,
-                    totalRevenue: { $sum: "$plotDetails.price" }
+                $match: {
+                    "plotDetails.farmer": user._id
                 }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$startDate" },
+                        month: { $month: "$startDate" }
+                    },
+                    totalEarnings: { $sum: "$amount" }
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1 }
             }
         ]);
 
-        const totalRevenue = totalRevenueData.length > 0 ? totalRevenueData[0].totalRevenue : 0;
+        const formatted = earnings.map(items => {
+            const month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][items._id.month - 1];
+            return {
+                month: `${month} ${items._id.year}`,
+                totalEarnings: items.totalEarnings
+            };
+        });
 
         return res.status(200).json({
             success: true,
-            totalUsers,
-            totalPlots,
-            totalSubscriptions,
-            activeSubscriptions,
-            totalRevenue
+            data: formatted
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Internal server error, due to this ${error.message} reason`
+        });
+    }
+};
+
+const getDashboardTable = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (user.role === "Farmer") {
+            // Get all plots for the farmer with subscription counts and earnings
+            const plots = await Plot.aggregate([
+                {
+                    $match: { farmer: user._id }
+                },
+                {
+                    $lookup: {
+                        from: "subscriptions",
+                        localField: "_id",
+                        foreignField: "plot",
+                        as: "subscriptions"
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        currentCrop: 1,
+                        status: 1,
+                        price: 1,
+                        subscriptionCount: {
+                            $size: {
+                                $filter: {
+                                    input: "$subscriptions",
+                                    as: "sub",
+                                    cond: { $eq: ["$$sub.status", "Active"] }
+                                }
+                            }
+                        },
+                        totalEarnings: {
+                            $sum: {
+                                $cond: [
+                                    { $eq: ["$subscriptions.status", "Active"] },
+                                    "$price",
+                                    0
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]);
+
+            const formatted = plots.map(plot => ({
+                plotId: plot._id,
+                crop: plot.currentCrop || "N/A",
+                status: plot.status,
+                subscription: plot.subscriptionCount,
+                earnings: plot.totalEarnings || 0
+            }));
+
+            return res.status(200).json({
+                success: true,
+                data: formatted
+            });
+        }
+
+        if (user.role === "Subscriber") {
+            const subscriptions = await Subscription.aggregate([
+                {
+                    $match: { user: user._id }
+                },
+                {
+                    $lookup: {
+                        from: "plots",
+                        localField: "plot",
+                        foreignField: "_id",
+                        as: "plotDetails"
+                    }
+                },
+                {
+                    $unwind: "$plotDetails"
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        plotId: "$plotDetails._id",
+                        crop: "$plotDetails.currentCrop",
+                        status: "$status",
+                        price: "$plotDetails.price"
+                    }
+                }
+            ]);
+
+            const formatted = subscriptions.map(sub => ({
+                plotId: sub.plotId,
+                crop: sub.crop || "N/A",
+                status: sub.status,
+                subscription: sub.price,
+                earnings: sub.price
+            }));
+
+            return res.status(200).json({
+                success: true,
+                data: formatted
+            });
+        }
+
+        return res.status(403).json({
+            success: false,
+            message: "Unauthorized access"
         });
 
     } catch (error) {
@@ -55,4 +297,4 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats };
+module.exports = { getDashboardStats, getEarningData, getDashboardTable };

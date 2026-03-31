@@ -8,7 +8,9 @@ const createPlot = async (req, res) => {
       price,
       currentCrop,
       sowingDate,
-      expectedHarvestDate
+      expectedHarvestDate,
+      latitude,
+      longitude
     } = req.body;
 
     if (!plotNumber || !size || !price) {
@@ -39,6 +41,28 @@ const createPlot = async (req, res) => {
       });
     }
 
+    // Validate location
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and longitude are required"
+      });
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude must be between -90 and 90"
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Longitude must be between -180 and 180"
+      });
+    }
+
     const existingPlot = await Plot.findOne({ plotNumber });
 
     if (existingPlot) {
@@ -55,6 +79,10 @@ const createPlot = async (req, res) => {
       currentCrop,
       sowingDate,
       expectedHarvestDate,
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      },
       farmer: req.user._id
     });
 
@@ -160,26 +188,44 @@ const updatePlots = async (req, res) => {
       });
     }
 
-    const allowedUpdates = [
-      "size",
-      "price",
-      "currentCrop",
-      "sowingDate",
-      "expectedHarvestDate"
-    ];
+    // Handle location update
+    if (req.body.latitude !== undefined && req.body.longitude !== undefined) {
+      const { latitude, longitude } = req.body;
 
-    allowedUpdates.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        plot[field] = req.body[field];
+      if (latitude < -90 || latitude > 90) {
+        return res.status(400).json({
+          success: false,
+          message: "Latitude must be between -90 and 90"
+        });
       }
-    });
 
-    const updatedPlot = await plot.save();
+      if (longitude < -180 || longitude > 180) {
+        return res.status(400).json({
+          success: false,
+          message: "Longitude must be between -180 and 180"
+        });
+      }
+
+      plot.location = {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      };
+    }
+
+    if (req.body.plotNumber) plot.plotNumber = req.body.plotNumber;
+    if (req.body.size) plot.size = req.body.size;
+    if (req.body.price) plot.price = req.body.price;
+    if (req.body.currentCrop) plot.currentCrop = req.body.currentCrop;
+    if (req.body.sowingDate) plot.sowingDate = req.body.sowingDate;
+    if (req.body.expectedHarvestDate) plot.expectedHarvestDate = req.body.expectedHarvestDate;
+    if (req.body.status) plot.status = req.body.status;
+
+    await plot.save();
 
     res.status(200).json({
       success: true,
       message: "Plot updated successfully",
-      updatedPlot
+      plot
     });
 
   } catch (error) {
@@ -193,7 +239,6 @@ const updatePlots = async (req, res) => {
 
 const deletePlot = async (req, res) => {
   try {
-
     const plot = await Plot.findById(req.params.id);
 
     if (!plot) {
@@ -210,13 +255,11 @@ const deletePlot = async (req, res) => {
       });
     }
 
-    plot.status = "Inactive";
-
-    await plot.save();
+    await Plot.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: "Plot deactivated successfully (soft delete)"
+      message: "Plot deleted successfully"
     });
 
   } catch (error) {
@@ -227,11 +270,4 @@ const deletePlot = async (req, res) => {
   }
 };
 
-
-module.exports = {
-  createPlot,
-  getAllPlots,
-  getPlotById,
-  updatePlots,
-  deletePlot
-};
+module.exports = { createPlot, getAllPlots, getPlotById, updatePlots, deletePlot };
