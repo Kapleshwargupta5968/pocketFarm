@@ -3,7 +3,7 @@ import axiosInstance from "./axiosInstance";
 export const getMyNotifications = async () => {
     try {
         const response = await axiosInstance.get("/notifications");
-        return response?.data;
+        return response?.data?.count || 0;
     } catch (error) {
         throw error;
     }
