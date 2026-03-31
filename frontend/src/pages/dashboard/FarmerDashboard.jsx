@@ -1,21 +1,20 @@
 import StatsCard from "../../components/dashboard/StatsCard"
 import EarningsChart from "../../components/dashboard/EarningsChart"
 import DataTable from "../../components/dashboard/DataTable";
+import Loader from "../../components/common/Loader"
+import { fetchDashboardData } from "../../features/dashboard/dashboardThunk";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 const FarmerDashboard = () => {
-  const chartData = [
-    { month: 'Jan', earnings: 100 },
-    { month: 'Feb', earnings: 200 },
-    { month: 'Mar', earnings: 300 },
-    { month: 'Apr', earnings: 400 },
-    { month: 'May', earnings: 500 },
-    { month: 'Jun', earnings: 600 },
-    { month: 'Jul', earnings: 700 },
-    { month: 'Aug', earnings: 800 },
-    { month: 'Sep', earnings: 900 },
-    { month: 'Oct', earnings: 1000 },
-    { month: 'Nov', earnings: 1100 },
-    { month: 'Dec', earnings: 1200 },
-  ];
+  const dispatch = useDispatch();
+  const { stats, chart, table, loading, error } = useSelector(state => state.dashboard);
+  useEffect(()=>{
+    if(!stats?.totalPlots){
+      dispatch(fetchDashboardData());
+    }
+  },[dispatch, stats]);
+  if (loading) return <Loader fullScreen text="Loading dashboard..." />
+  if (error) return <div className="text-red-500">{error}</div>
 
   const columns = [
     {
@@ -24,9 +23,9 @@ const FarmerDashboard = () => {
       key: "plotId"
     },
     {
-      title: "Crop",
-      dataIndex: "crop",
-      key: "crop"
+      title: "Plot Name",
+      dataIndex: "name",
+      key: "name"
     },
     {
       title: "Status",
@@ -39,37 +38,34 @@ const FarmerDashboard = () => {
       key: "subscription"
     },
     {
-      title: "Earnings",
+      title: "Price (INR)",
+      dataIndex: "price",
+      key: "price",
+      render: (val) => `₹${val}`
+    },
+    {
+      title: "Earnings (INR)",
       dataIndex: "earnings",
       key: "earnings"
     },
   ];
 
-  const data = [
-    { plotId: "1", crop: "Wheat", status: "Active", subscription: "100", earnings: "100" },
-    { plotId: "2", crop: "Rice", status: "Active", subscription: "100", earnings: "100" },
-    { plotId: "3", crop: "Maize", status: "Active", subscription: "100", earnings: "100" },
-    { plotId: "4", crop: "Wheat", status: "Active", subscription: "100", earnings: "100" },
-    { plotId: "5", crop: "Rice", status: "Active", subscription: "100", earnings: "100" },
-  ];
-
   return (
     <>
       <div>
-        <h1 className="text-xl font-semi-bold mb-4">Farmer Dashboard</h1>
+        <h1 className="text-xl font-semibold mb-4">Farmer Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard title="Total Plots" value="10" />
-          <StatsCard title="Active Subscriptions" value="10" />
-          <StatsCard title="Earnings (INR)" value="10" />
-          <StatsCard title="Pending Requests" value="10" />
+          <StatsCard title="Total Plots" value={stats?.totalPlots || "0"} />
+          <StatsCard title="Active Subscriptions" value={stats?.activeSubscriptions || "0"} />
+          <StatsCard title="Earnings (INR)" value={stats?.earnings || "0"} />
+          <StatsCard title="Pending Requests" value={stats?.pendingRequests || "0"} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <EarningsChart data={chartData} />
+          <EarningsChart data={chart || []} />
         </div>
         <h2 className="text-lg font-semibold mb-2">My Plots</h2>
-        <DataTable columns={columns} data={data} />
+        <DataTable columns={columns} data={table || []} />
       </div>
-
     </>
   )
 }

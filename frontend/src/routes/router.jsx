@@ -2,10 +2,13 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./protectedRoute";
 import Signup from "../pages/auth/Signup";
 import Signin from "../pages/auth/Signin";
-import FarmerDashboard from "../pages/dashboard/FarmerDashboard";
-import SubscriberDashboard from "../pages/dashboard/SubscriberDashboard";
-import Unauthorized from "../pages/common/Unauthorized";
-import Dashboard from "../pages/dashboard/Dashboard";
+import { lazy, Suspense } from "react";
+import Loader from "../components/common/Loader";
+
+const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
+const Unauthorized = lazy(() => import("../pages/common/Unauthorized"));
+const FarmerDashboard = lazy(() => import("../pages/dashboard/FarmerDashboard"));
+const SubscriberDashboard = lazy(() => import("../pages/dashboard/SubscriberDashboard"));
 
 export const router = createBrowserRouter([
     {
@@ -19,25 +22,31 @@ export const router = createBrowserRouter([
     {
         path:"/dashboard",
         element:(
-            <ProtectedRoute>
-                <Dashboard/>
-            </ProtectedRoute>
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute>
+                    <Dashboard/>
+                </ProtectedRoute>
+            </Suspense>
         )
     },
     {
         path:"/farmer",
         element:(
-            <ProtectedRoute allowedRoles={["Farmer"]}>
-                <FarmerDashboard/>
-            </ProtectedRoute>
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute allowedRoles={["Farmer"]}>
+                    <FarmerDashboard/>
+                </ProtectedRoute>
+            </Suspense>
         )
     },
     {
         path:"/subscriber",
         element:(
-            <ProtectedRoute allowedRoles={["Subscriber"]}>
-                <SubscriberDashboard/>
-            </ProtectedRoute>
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute allowedRoles={["Subscriber"]}>
+                    <SubscriberDashboard/>
+                </ProtectedRoute>
+            </Suspense>
         )
     },
     {

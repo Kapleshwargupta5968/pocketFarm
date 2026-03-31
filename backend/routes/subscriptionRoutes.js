@@ -1,13 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const {subscribePlot,
-    getSubscriptions,
-    cancelSubscription} = require("../controllers/subscriptionController");
+const {
+    subscribePlot,
+    getMySubscriptions,
+    getSubscriptionById,
+    cancelSubscription,
+    renewSubscription
+} = require("../controllers/subscriptionController");
 
-    const {authProtector} = require("../middlewares/authMiddleware");
+const { authProtector } = require("../middlewares/authMiddleware");
 
-    router.post("/subscribe", authProtector, subscribePlot);
-    router.get("/", authProtector, getSubscriptions);
-    router.delete("/:id/cancel", authProtector, cancelSubscription);
+// Subscribe to a plot
+router.post("/subscribe", authProtector, subscribePlot);
 
-    module.exports = router;
+// Get all my subscriptions
+router.get("/my-subscriptions", authProtector, getMySubscriptions);
+
+// Get specific subscription
+router.get("/:id", authProtector, getSubscriptionById);
+
+// Cancel subscription
+router.delete("/:id/cancel", authProtector, cancelSubscription);
+
+// Renew subscription
+router.post("/renew", authProtector, renewSubscription);
+
+module.exports = router;

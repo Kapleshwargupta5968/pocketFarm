@@ -1,49 +1,57 @@
-const notification = require("../models/notification");
 const Notification = require("../models/notification");
 const mongoose = require("mongoose");
 
-const getMyNotification = async (req,res) => {
-    try{
+const getMyNotification = async (req, res) => {
+    try {
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated"
+            });
+        }
+
         const notifications = await Notification.find({
             user: req.user._id
-        }).sort({createdAt:-1});
+        }).sort({ createdAt: -1 });
 
         return res.status(200).json({
-            success:true,
-            count: notification.length,
+            success: true,
+            count: notifications.length,
             notifications
         });
-    }catch(error){
+    } catch (error) {
+        console.error("Error in getMyNotification:", error);
         return res.status(500).json({
-            success:false,
-            message: `Internal server error, due to this ${error.message} reason`
+            success: false,
+            message: `Internal server error: ${error.message}`
         });
     }
 };
 
 const markAsRead = async (req, res) => {
-    try{
-        const notificationId = req.params.id;
+    try {
+        const { id } = req.params;
 
-        if(!mongoose.Types.ObjectId.isValid(notificationId)){
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
-                success:false,
-                message:"Invalid notification ID"
+                success: false,
+                message: "Invalid notification ID format"
             });
         }
 
-        const notification = await Notification.findById(notificationId);
-        if(!notification){
+        const notification = await Notification.findById(id);
+        
+        if (!notification) {
             return res.status(404).json({
-                success:false,
-                message:"Notification not found"
+                success: false,
+                message: "Notification not found"
             });
         }
 
-        if(notification.user.toString() !== req.user._id.toString()){
+        if (notification.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({
-                success:false,
-                message:"Unauthorized"
+                success: false,
+                message: "Unauthorized: Cannot modify this notification"
             });
         }
 
@@ -51,73 +59,78 @@ const markAsRead = async (req, res) => {
         await notification.save();
 
         return res.status(200).json({
-            success:true,
-            message:"Notification marked as read"
+            success: true,
+            message: "Notification marked as read",
+            notification
         });
-    }catch(error){
+    } catch (error) {
+        console.error("Error in markAsRead:", error);
         return res.status(500).json({
-            success:false,
-            message: `Internal server error, due to this ${error.message} reason`
+            success: false,
+            message: `Internal server error: ${error.message}`
         });
     }
 };
 
 const markAllAsRead = async (req, res) => {
-    try{
-        const notifications = await Notification.updateMany(
-            {user: req.user._id},
-            {$set: {isRead: true}}
+    try {
+        const result = await Notification.updateMany(
+            { user: req.user._id, isRead: false },
+            { $set: { isRead: true } }
         );
 
         return res.status(200).json({
-            success:true,
-            message:"All notifications marked as read"
+            success: true,
+            message: "All notifications marked as read",
+            modifiedCount: result.modifiedCount
         });
-    }catch(error){
+    } catch (error) {
+        console.error("Error in markAllAsRead:", error);
         return res.status(500).json({
-            success:false,
-            message: `Internal server error, due to this ${error.message} reason`
+            success: false,
+            message: `Internal server error: ${error.message}`
         });
     }
 };
 
-
 const deleteNotification = async (req, res) => {
-    try{
-        const notificationId = req.params.id;
+    try {
+        const { id } = req.params;
 
-        if(!mongoose.Types.ObjectId.isValid(notificationId)){
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
-                success:false,
-                message:"Invalid notification ID"
+                success: false,
+                message: "Invalid notification ID format"
             });
         }
 
-        const notification = await Notification.findById(notificationId);
-        if(!notification){
+        const notification = await Notification.findById(id);
+        
+        if (!notification) {
             return res.status(404).json({
-                success:false,
-                message:"Notification not found"
+                success: false,
+                message: "Notification not found"
             });
         }
 
-        if(notification.user.toString() !== req.user._id.toString()){
+        if (notification.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({
-                success:false,
-                message:"Unauthorized"
+                success: false,
+                message: "Unauthorized: Cannot delete this notification"
             });
         }
 
-        await notification.deleteOne();
+        await Notification.deleteOne({ _id: id });
 
         return res.status(200).json({
-            success:true,
-            message:"Notification deleted successfully"
+            success: true,
+            message: "Notification deleted successfully"
         });
-    }catch(error){
+    } catch (error) {
+        console.error("Error in deleteNotification:", error);
         return res.status(500).json({
-            success:false,
-            message: `Internal server error, due to this ${error.message} reason`
+            success: false,
+            message: `Internal server error: ${error.message}`
         });
     }
 };

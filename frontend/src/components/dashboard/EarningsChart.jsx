@@ -1,6 +1,7 @@
+import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const EarningsChart = ({data}) => {
+const EarningsChart = React.memo(({data}) => {
     return (
         <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4">Earnings Chart</h2>
@@ -17,6 +18,6 @@ const EarningsChart = ({data}) => {
         </ResponsiveContainer>
          </div>
     );
-}
+});
 
 export default EarningsChart;
