@@ -44,3 +44,13 @@ export const deletePlot = async (plotId) => {
         throw error;
     }
 };
+
+
+export const searchPlots = async (params) => {
+    try{
+        const response = await axiosInstance.get("/plots/search", { params });
+        return response?.data;
+    }catch(error){
+        throw error;
+    }
+};

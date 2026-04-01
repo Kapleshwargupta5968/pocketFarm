@@ -1,5 +1,36 @@
 const Notification = require("../models/notification");
 const mongoose = require("mongoose");
+const {io, users} = require("../server");
+
+
+
+const createNotification = async (req, res) => {
+    try{
+        const {user, title, message, type} = req.body;
+      const notification = await Notification.create({
+        user,
+        title,
+        message,
+        type
+      });
+
+      const userId = user.toString();
+      if(users[userId]){
+        io.to(users[userId]).emit("newNotification", notification);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: "Notification created successfully",
+        notification
+      });   
+    }catch(error){
+        return res.status(500).json({
+            success: false,
+            message: `Internal server error: ${error.message}`
+        });
+    }
+};
 
 const getMyNotification = async (req, res) => {
     try {
@@ -136,6 +167,7 @@ const deleteNotification = async (req, res) => {
 };
 
 module.exports = {
+    createNotification,
     getMyNotification,
     markAsRead,
     markAllAsRead,

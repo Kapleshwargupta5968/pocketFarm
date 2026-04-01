@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-
+import socket from "../../services/socketService";
 import {
   getMyNotifications,
   markAsRead,
@@ -43,6 +43,28 @@ const Navbar = () => {
     fetchNotifications();
   }, [dispatch]);
 
+  useEffect(() => {
+    const handleNewNotification = (notification) => {
+      const exists = notifications.some((n) => n._id === notification._id);
+
+      if (!exists) {
+        const updated = [notification, ...notifications];
+    }
+    dispatch(
+      setNotifications({
+        notifications: updated,
+        count: updated.filter((n) => !n.isRead).length
+      })
+    );
+  };
+
+    socket.on("newNotification", handleNewNotification);
+
+    return () => {
+      socket.off("newNotification", handleNewNotification);
+    };
+
+  }, [notifications, dispatch]);
 
   const handleReadNotification = async (id) => {
     try {

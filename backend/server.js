@@ -3,8 +3,38 @@ dotEnv.config();
 
 const cors = require("cors");
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const app = express();
-const cookiesParser = require("cookie-parser");
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:5173",
+        credentials: true
+    }
+});
+
+const users = {};
+
+io.on("connection", (socket) => {
+    console.log("A user connected: " + socket.id);
+    socket.on("register", (userId) => {
+        users[userId] = socket.id;
+    });
+
+    socket.on("disconnect", () => {
+        for (const userId in users) {
+            if (users[userId] === socket.id) {
+                delete users[userId];
+                break;
+            }
+        }
+    });
+});
+
+const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
 connectDB();
 
@@ -19,15 +49,15 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const paymentRoutes = require("./routes/razorpayRoutes");
 
 app.use("/api/payment/webhook", express.raw({
-    type:"application/json"
+    type: "application/json"
 }));
 
 app.use(express.json());
 app.use(cors({
-    origin:"http://localhost:5173",
-    credentials:true
+    origin: "http://localhost:5173",
+    credentials: true
 }));
-app.use(cookiesParser());
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/plots", plotRoutes);
@@ -37,6 +67,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/payment", paymentRoutes);
 
-app.listen(process.env.PORT, () => {
+module.exports = { io, users };
+
+server.listen(process.env.PORT, () => {
     console.log(`Server is listening on this ${process.env.PORT} port`);
 });

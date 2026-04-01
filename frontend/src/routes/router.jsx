@@ -9,8 +9,30 @@ const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const Unauthorized = lazy(() => import("../pages/common/Unauthorized"));
 const FarmerDashboard = lazy(() => import("../pages/dashboard/FarmerDashboard"));
 const SubscriberDashboard = lazy(() => import("../pages/dashboard/SubscriberDashboard"));
-
+const PlotList = lazy(() => import("../pages/plot/PlotList"));
+const CreatePlot = lazy(() => import("../pages/plot/CreatePlot"));  
 export const router = createBrowserRouter([
+    {
+        path:"/create-plot",
+        element:(
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute allowedRoles={["Farmer"]}>
+                    <CreatePlot/>
+                </ProtectedRoute>
+            </Suspense>
+        )
+    },
+    {
+        path:"/plots",
+        element: (
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute>
+                    <PlotList/>
+                </ProtectedRoute>
+            </Suspense>
+        )
+
+    },
     {
         path:"/signup",
         element:<Signup/>
