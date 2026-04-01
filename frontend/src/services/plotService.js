@@ -9,6 +9,15 @@ export const createPlot = async (plotData) => {
     }
 };
 
+export const getMyPlots = async () => {
+    try{
+        const response = await axiosInstance.get("/plots/my-plots");
+        return response?.data;
+    }catch(error){
+        throw error;
+    }
+};
+
 export const getAllPlots = async () => {
     try{
         const response = await axiosInstance.get("/plots");

@@ -11,6 +11,8 @@ const FarmerDashboard = lazy(() => import("../pages/dashboard/FarmerDashboard"))
 const SubscriberDashboard = lazy(() => import("../pages/dashboard/SubscriberDashboard"));
 const PlotList = lazy(() => import("../pages/plot/PlotList"));
 const CreatePlot = lazy(() => import("../pages/plot/CreatePlot"));  
+const MyPlots = lazy(() => import("../pages/plot/MyPlots"));
+const EditPlot = lazy(() => import("../pages/plot/EditPlot"));
 export const router = createBrowserRouter([
     {
         path:"/create-plot",
@@ -31,7 +33,26 @@ export const router = createBrowserRouter([
                 </ProtectedRoute>
             </Suspense>
         )
-
+    },
+    {
+        path:"/my-plots",
+        element: (
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute>
+                    <MyPlots/>
+                </ProtectedRoute>
+            </Suspense>
+        )
+    },
+    {
+        path:"/edit-plot/:id",
+        element: (
+            <Suspense fallback={<Loader fullScreen/>}>
+                <ProtectedRoute>
+                    <EditPlot/>
+                </ProtectedRoute>
+            </Suspense>
+        )
     },
     {
         path:"/signup",
