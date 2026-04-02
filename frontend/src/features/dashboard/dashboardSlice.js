@@ -21,8 +21,8 @@ const dashboardSlice = createSlice({
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
         state.loading = false;
         state.stats = action.payload.stats;
-        state.chart = action.payload.chart;
-        state.table = action.payload.tableData;
+        state.chart = action.payload.chart?.data || [];
+        state.table = action.payload.tableData?.data || [];
       })
       .addCase(fetchDashboardData.rejected, (state, action) => {
         state.loading = false;

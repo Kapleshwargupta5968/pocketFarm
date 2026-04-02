@@ -31,6 +31,15 @@ const PlotList = () => {
                     {
                         plots.map((plot) => (
                             <div key={plot._id} onClick={()=>navigate(`/plots/${plot._id}`)} className="border rounded-lg p-4 shadow">
+
+                              {
+                                plot.images?.[0] && (
+                                  <img 
+                                  src={plot.images[0]} 
+                                  alt="Plot image" 
+                                  className="w-full h-48 object-cover rounded-lg shadow" />
+                                )
+                              }
                                 <h2 className="font-semibold">Plot #{plot.plotNumber}</h2>
                                 <p>Size: {plot.size}</p>
                                 <p>Price: {plot.price}</p>

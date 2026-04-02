@@ -50,20 +50,22 @@ const Header = () => {
                 key={item.id}
                 to={item.path}
                 className={({ isActive }) =>
-                  `relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  `group relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
                     isActive
-                      ? 'text-green-700 bg-green-50'
-                      : 'text-gray-600 hover:text-green-700 hover:bg-green-50/70'
+                      ? 'text-green-700'
+                      : 'text-gray-600 hover:text-green-700'
                   }`
                 }
               >
                 {({ isActive }) => (
-                  <>
+                  <span className="relative py-1">
                     {item.name}
-                    {isActive && (
-                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-green-500" />
-                    )}
-                  </>
+                    <span 
+                      className={`absolute bottom-0 left-0 h-[2px] bg-green-600 transition-all duration-300 ease-out rounded-full ${
+                        isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                      }`} 
+                    />
+                  </span>
                 )}
               </NavLink>
             ))}

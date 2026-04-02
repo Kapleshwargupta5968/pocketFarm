@@ -60,29 +60,35 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-    
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
-
+    <footer className="bg-slate-950 text-slate-300 relative overflow-hidden isolate border-t border-slate-800">
+      {/* Background glow effects */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
       
-          <div className="md:col-span-2">
-            <NavLink to="/" className="text-2xl font-bold text-white flex items-center gap-2 mb-4">
-              🌱 PocketFarm
+      <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
+
+          {/* Brand Column */}
+          <div className="md:col-span-5">
+            <NavLink to="/" className="text-3xl font-bold text-white flex items-center gap-3 mb-6 hover:opacity-90 transition-opacity">
+              <span className="text-4xl">🌱</span>
+              <span>
+                Pocket<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Farm</span>
+              </span>
             </NavLink>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
-              Smart farm management for modern farmers. Manage plots, subscriptions,
-              and payments — all in one place.
+            <p className="text-slate-400 text-base leading-loose mb-8 pr-4 font-light">
+              Smart farm management for modern farmers. Track plots, manage subscriptions,
+              and receive payments effortlessly within a premium, unified dashboard ecosystem.
             </p>
 
-          
+            {/* Socials */}
             <div className="flex gap-4">
               {socials.map((s) => (
                 <a
                   key={s.name}
                   href={s.href}
                   aria-label={s.name}
-                  className="w-9 h-9 rounded-lg bg-gray-800 hover:bg-green-600 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200"
+                  className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/10 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all duration-300"
                 >
                   {s.icon}
                 </a>
@@ -90,46 +96,56 @@ const Footer = () => {
             </div>
           </div>
 
-        
-          {Object.entries(links).map(([section, items]) => (
-            <div key={section}>
-              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-5">
-                {section}
-              </h3>
-              <ul className="space-y-3">
-                {items.map((item) => (
-                  <li key={item.name}>
-                    <NavLink
-                      to={item.path}
-                      className="text-gray-400 hover:text-green-400 text-sm transition-colors duration-200"
-                    >
-                      {item.name}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Links Columns */}
+          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
+            {Object.entries(links).map(([section, items]) => (
+              <div key={section}>
+                <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-6 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500/80"></span>
+                  {section}
+                </h3>
+                <ul className="space-y-4">
+                  {items.map((item) => (
+                    <li key={item.name}>
+                      <NavLink
+                        to={item.path}
+                        className="text-slate-400 hover:text-emerald-400 text-sm md:text-base transition-colors duration-200 flex items-center gap-2 group"
+                      >
+                        <span className="w-0 h-px bg-emerald-400 transition-all duration-300 group-hover:w-3"></span>
+                        {item.name}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-14 border-t border-gray-800 pt-10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-1">Stay in the loop 🌾</h3>
-              <p className="text-gray-400 text-sm">Get farming tips and platform updates straight to your inbox.</p>
+        {/* Newsletter Section */}
+        <div className="mt-20 p-8 rounded-3xl bg-slate-900/50 border border-slate-800 backdrop-blur-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+            <div className="w-full lg:w-1/2 text-left">
+              <h3 className="text-white font-bold text-xl mb-2 flex items-center gap-2">
+                Stay in the loop 🌾
+              </h3>
+              <p className="text-slate-400 font-light text-sm md:text-base">
+                Join our newsletter for weekly farming tips, market trends, and early access to new platform features.
+              </p>
             </div>
             <form
               onSubmit={(e) => e.preventDefault()}
-              className="flex w-full md:w-auto gap-2"
+              className="flex w-full lg:max-w-md relative flex-col sm:flex-row gap-3 sm:gap-0"
             >
               <input
                 type="email"
-                placeholder="your@email.com"
-                className="flex-1 md:w-64 bg-gray-800 border border-gray-700 text-gray-300 placeholder-gray-500 text-sm px-4 py-2.5 rounded-lg focus:outline-none focus:border-green-500 transition"
+                placeholder="Enter your email address..."
+                className="w-full bg-slate-950 border border-slate-800 text-slate-300 font-light placeholder-slate-500 text-base px-6 py-4 rounded-xl sm:rounded-full focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner relative z-10 sm:pr-36"
               />
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition whitespace-nowrap"
+                className="btn-primary !rounded-xl sm:!rounded-full !py-3 !px-8 z-20 whitespace-nowrap text-base shadow-lg sm:absolute sm:right-2 sm:top-2 sm:bottom-2 flex items-center justify-center w-full sm:w-auto"
               >
                 Subscribe
               </button>
@@ -138,11 +154,12 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
-          <p>© {currentYear} PocketFarm. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Made with <span className="text-green-500">♥</span> for farmers everywhere
+      {/* Copyright Footer */}
+      <div className="border-t border-slate-800/50 bg-slate-950/80 backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-light text-slate-500">
+          <p>© {currentYear} PocketFarm Inc. All rights reserved.</p>
+          <p className="flex items-center gap-1.5">
+            Designed with <span className="text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">♥</span> for farmers everywhere
           </p>
         </div>
       </div>

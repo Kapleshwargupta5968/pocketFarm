@@ -10,9 +10,10 @@ const {
     deletePlot,
     searchPlots
 } = require("../controllers/plotController");
+const {upload} = require("../middlewares/uploadMiddleware");
 
 // Create plot
-router.post("/", authProtector, authorizeRoles("Farmer"), createPlot);
+router.post("/", authProtector, authorizeRoles("Farmer"), upload.array("images", 10), createPlot);
 
 // Get all plots
 router.get("/", getAllPlots);

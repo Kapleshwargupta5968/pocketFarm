@@ -2,7 +2,11 @@ import axiosInstance from "./axiosInstance";
 
 export const createPlot = async (plotData) => {
     try{
-        const response = await axiosInstance.post("/plots", plotData);
+        const response = await axiosInstance.post("/plots", plotData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
         return response?.data;
     }catch(error){
         throw error;

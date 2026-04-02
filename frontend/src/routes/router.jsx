@@ -16,6 +16,7 @@ const Subscriptions = lazy(() => import("../pages/subscription/Subscriptions"));
 const Payments = lazy(() => import("../pages/payment/Payments"));
 const Home = lazy(() => import("../pages/home/Home"));
 const About = lazy(() => import("../pages/home/About"));
+const PlotDetails = lazy(() => import("../pages/plot/PlotDetails"));
 
 const withSuspense = (Component) => (
   <Suspense fallback={<Loader fullScreen />}>
@@ -47,6 +48,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loader />}>
             <PlotList />
+          </Suspense>
+        ),
+      },
+      {
+        path: "plots/:id",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <PlotDetails />
           </Suspense>
         ),
       },

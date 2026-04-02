@@ -1,3 +1,28 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float-slow 12s infinite alternate;
+  --animate-float-slow-reverse: float-slow 15s infinite alternate-reverse;
+  --animate-float-card-1: float-slow 5s ease-in-out infinite alternate;
+  --animate-float-card-2: float-slow 7s ease-in-out infinite alternate-reverse;
+  --animate-fade-slide-up: fade-slide-up 1s ease-out forwards;
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+
+  @keyframes float-slow {
+    0% { transform: translate(0px, 0px) scale(1); }
+    100% { transform: translate(30px, -30px) scale(1.1); }
+  }
+
+  @keyframes fade-slide-up {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+}
+
 @import "./styles/index.css";

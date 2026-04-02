@@ -1,6 +1,6 @@
 const Plot = require("../models/plot");
 const mongoose = require("mongoose");
-
+const cloudinary = require("../config/cloudinary");
 const createPlot = async (req, res) => {
     try {
         const {
@@ -79,6 +79,17 @@ const createPlot = async (req, res) => {
             });
         }
 
+        let imageUrls = [];
+        if(req.files && req.files.length > 0){
+            for(const file of req.files){
+                const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+                const result = await cloudinary.uploader.upload(base64, {
+                    folder: "pocketfarm/plots"
+                });
+                imageUrls.push(result.secure_url);
+            }
+        }
+
         // Create plot
         const plot = await Plot.create({
             plotNumber: plotNumber.trim(),
@@ -92,7 +103,7 @@ const createPlot = async (req, res) => {
                 type: "Point",
                 coordinates: [longitude, latitude]
             },
-            images: [],
+            images: imageUrls,
             status: "Available"
         });
 
@@ -105,7 +116,11 @@ const createPlot = async (req, res) => {
                 size: plot.size,
                 price: plot.price,
                 status: plot.status,
-                location: plot.location
+                location: plot.location,
+                images: plot.images,
+                currentCrop: plot.currentCrop,
+                sowingDate: plot.sowingDate,
+                expectedHarvestDate: plot.expectedHarvestDate,
             }
         });
 
