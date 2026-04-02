@@ -6,102 +6,146 @@ import { lazy, Suspense } from "react";
 import Loader from "../components/common/Loader";
 
 const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
+const DashboardHome = lazy(() => import("../pages/dashboard/DashboardHome"));
 const Unauthorized = lazy(() => import("../pages/common/Unauthorized"));
-const FarmerDashboard = lazy(() => import("../pages/dashboard/FarmerDashboard"));
-const SubscriberDashboard = lazy(() => import("../pages/dashboard/SubscriberDashboard"));
 const PlotList = lazy(() => import("../pages/plot/PlotList"));
-const CreatePlot = lazy(() => import("../pages/plot/CreatePlot"));  
+const CreatePlot = lazy(() => import("../pages/plot/CreatePlot"));
 const MyPlots = lazy(() => import("../pages/plot/MyPlots"));
 const EditPlot = lazy(() => import("../pages/plot/EditPlot"));
+const Subscriptions = lazy(() => import("../pages/subscription/Subscriptions"));
+const Payments = lazy(() => import("../pages/payment/Payments"));
+const Home = lazy(() => import("../pages/home/Home"));
+const About = lazy(() => import("../pages/home/About"));
+
+const withSuspense = (Component) => (
+  <Suspense fallback={<Loader fullScreen />}>
+    <Component />
+  </Suspense>
+);
+
 export const router = createBrowserRouter([
-    {
-        path:"/create-plot",
-        element:(
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute allowedRoles={["Farmer"]}>
-                    <CreatePlot/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/plots",
+  {
+    path: "/dashboard",
+    element: (
+      <Suspense fallback={<Loader fullScreen />}>
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Suspense>
+    ),
+    children: [
+      {
+        index: true,
         element: (
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute>
-                    <PlotList/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/my-plots",
+          <Suspense fallback={<Loader />}>
+            <DashboardHome />
+          </Suspense>
+        ),
+      },
+      {
+        path: "plots",
         element: (
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute>
-                    <MyPlots/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/edit-plot/:id",
+          <Suspense fallback={<Loader />}>
+            <PlotList />
+          </Suspense>
+        ),
+      },
+      {
+        path: "my-plots",
         element: (
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute>
-                    <EditPlot/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/signup",
-        element:<Signup/>
-    },
-    {
-        path:"/signin",
-        element:<Signin/>
-    },
-    {
-        path:"/dashboard",
-        element:(
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute>
-                    <Dashboard/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/farmer",
-        element:(
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute allowedRoles={["Farmer"]}>
-                    <FarmerDashboard/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/subscriber",
-        element:(
-            <Suspense fallback={<Loader fullScreen/>}>
-                <ProtectedRoute allowedRoles={["Subscriber"]}>
-                    <SubscriberDashboard/>
-                </ProtectedRoute>
-            </Suspense>
-        )
-    },
-    {
-        path:"/unauthorized",
-        element:<Unauthorized/>
-    },
-    {
-        path:"/",
-        element: <Navigate to="/dashboard" replace/>
-    },
-    {
-        path:"*",
-        element:<h1 className="p-6">404 Not Found</h1>
-    }
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <MyPlots />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "create-plot",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute allowedRoles={["Farmer"]}>
+              <CreatePlot />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "edit-plot/:id",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <EditPlot />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "subscriptions",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <Subscriptions />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "payments",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <Payments />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+    ],
+  },
+
+  { path: "/plots", element: <Navigate to="/dashboard/plots" replace /> },
+  { path: "/my-plots", element: <Navigate to="/dashboard/my-plots" replace /> },
+  { path: "/create-plot", element: <Navigate to="/dashboard/create-plot" replace /> },
+  { path: "/edit-plot/:id", element: <Navigate to="/dashboard/edit-plot/:id" replace /> },
+  { path: "/subscriptions", element: <Navigate to="/dashboard/subscriptions" replace /> },
+  { path: "/payments", element: <Navigate to="/dashboard/payments" replace /> },
+  { path: "/farmer", element: <Navigate to="/dashboard" replace /> },
+  { path: "/subscriber", element: <Navigate to="/dashboard" replace /> },
+
+  {
+    path: "/signup",
+    element: <Signup />,
+  },
+  {
+    path: "/signin",
+    element: <Signin />,
+  },
+  {
+    path: "/unauthorized",
+    element: (
+      <Suspense fallback={<Loader fullScreen />}>
+        <Unauthorized />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/",
+    element: (
+      <Suspense fallback={<Loader fullScreen />}>
+        <Home />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/about",
+    element: (
+      <Suspense fallback={<Loader fullScreen />}>
+        <About />
+      </Suspense>
+    ),
+  },
+  {
+    path: "*",
+    element: <h1 className="p-6">404 Not Found</h1>,
+  },
 ]);

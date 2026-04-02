@@ -4,35 +4,12 @@ dotEnv.config();
 const cors = require("cors");
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
 const app = express();
 
+const { initSocket } = require("./config/socket");
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5173",
-        credentials: true
-    }
-});
-
-const users = {};
-
-io.on("connection", (socket) => {
-    console.log("A user connected: " + socket.id);
-    socket.on("register", (userId) => {
-        users[userId] = socket.id;
-    });
-
-    socket.on("disconnect", () => {
-        for (const userId in users) {
-            if (users[userId] === socket.id) {
-                delete users[userId];
-                break;
-            }
-        }
-    });
-});
+initSocket(server);
 
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
@@ -67,7 +44,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/payment", paymentRoutes);
 
-module.exports = { io, users };
+
 
 server.listen(process.env.PORT, () => {
     console.log(`Server is listening on this ${process.env.PORT} port`);

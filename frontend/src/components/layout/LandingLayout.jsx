@@ -1,0 +1,18 @@
+import Header from "../shared/Header";
+import Footer from "../shared/Footer";
+import { Outlet } from "react-router-dom";
+
+const LandingLayout = ({ children }) => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1">
+        {children}
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default LandingLayout;

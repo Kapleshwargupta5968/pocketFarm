@@ -46,17 +46,16 @@ const Navbar = () => {
   useEffect(() => {
     const handleNewNotification = (notification) => {
       const exists = notifications.some((n) => n._id === notification._id);
+      if (exists) return;
 
-      if (!exists) {
-        const updated = [notification, ...notifications];
-    }
-    dispatch(
-      setNotifications({
-        notifications: updated,
-        count: updated.filter((n) => !n.isRead).length
-      })
-    );
-  };
+      const updated = [notification, ...notifications];
+      dispatch(
+        setNotifications({
+          notifications: updated,
+          count: updated.filter((n) => !n.isRead).length
+        })
+      );
+    };
 
     socket.on("newNotification", handleNewNotification);
 

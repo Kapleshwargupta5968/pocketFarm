@@ -67,7 +67,7 @@ const MyPlots = () => {
 
       <div className="flex justify-between items-center mb-4">
       <h1 className="text-xl font-bold mb-4">My Plots</h1>
-      <button onClick={() => navigate("/create-plot")} className="bg-green-500 text-white px-4 py-2 rounded">
+      <button onClick={() => navigate("/dashboard/create-plot")} className="bg-green-500 text-white px-4 py-2 rounded">
         + Create Plot
       </button>
       </div>
@@ -92,7 +92,7 @@ const MyPlots = () => {
               )
             }
             <div className="flex gap-2 mt-3">
-              <button onClick={() => navigate(`/edit-plot/${plot._id}`)} className="bg-blue-500 text-white px-4 py-2 rounded">Edit</button>
+              <button onClick={() => navigate(`/dashboard/edit-plot/${plot._id}`)} className="bg-blue-500 text-white px-4 py-2 rounded">Edit</button>
               <button onClick={() => handleDelete(plot._id)} className="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
             </div>
           </div>

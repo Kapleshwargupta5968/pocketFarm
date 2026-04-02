@@ -1,6 +1,6 @@
 const Notification = require("../models/notification");
 const mongoose = require("mongoose");
-const {io, users} = require("../server");
+const { getIO, users } = require("../config/socket");
 
 
 
@@ -16,7 +16,7 @@ const createNotification = async (req, res) => {
 
       const userId = user.toString();
       if(users[userId]){
-        io.to(users[userId]).emit("newNotification", notification);
+        getIO().to(users[userId]).emit("newNotification", notification);
       }
 
       return res.status(201).json({
