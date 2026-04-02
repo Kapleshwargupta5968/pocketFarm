@@ -61,11 +61,11 @@ const Footer = () => {
 
   return (
     <footer className="bg-gray-900 text-gray-300">
-      {/* Main Footer */}
+    
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
 
-          {/* Brand Column */}
+      
           <div className="md:col-span-2">
             <NavLink to="/" className="text-2xl font-bold text-white flex items-center gap-2 mb-4">
               🌱 PocketFarm
@@ -75,7 +75,7 @@ const Footer = () => {
               and payments — all in one place.
             </p>
 
-            {/* Social Icons */}
+          
             <div className="flex gap-4">
               {socials.map((s) => (
                 <a
@@ -90,7 +90,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Links Columns */}
+        
           {Object.entries(links).map(([section, items]) => (
             <div key={section}>
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-5">
@@ -112,7 +112,6 @@ const Footer = () => {
           ))}
         </div>
 
-        {/* Newsletter */}
         <div className="mt-14 border-t border-gray-800 pt-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
@@ -139,7 +138,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
           <p>© {currentYear} PocketFarm. All rights reserved.</p>
