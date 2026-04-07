@@ -32,11 +32,17 @@ axiosInstance.interceptors.response.use((response) => {
             return Promise.reject(error);
         }
 
+        const hasSession = localStorage.getItem('hasSession');
+        if (!hasSession) {
+            return Promise.reject(error);
+        }
+
         originalRequest._retry = true;
         try {
             await axios.post("http://localhost:5000/api/auth/refreshToken", {}, { withCredentials: true });
             return axiosInstance(originalRequest);
         } catch (refreshError) {
+            localStorage.removeItem('hasSession');
             if (!publicPaths.includes(window.location.pathname) && !isAuthEndpoint) {
                  window.location.replace("/signin");
             }

@@ -9,6 +9,13 @@ const useAuthInit = () => {
 
     useEffect(()=>{
         const init = async () => {
+            const hasSession = localStorage.getItem("hasSession");
+            if (!hasSession) {
+                dispatch(authFailure(null));
+                setIsInitialized(true);
+                return;
+            }
+
             try{
                 dispatch(authStart());
                 const response = await getMe();

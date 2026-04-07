@@ -12,6 +12,7 @@ import { setNotifications } from "../../features/notification/notificationSlice"
 import { UserOutlined } from "@ant-design/icons";
 
 import NotificationDropdown from "../notification/NotificationDropdown";
+import { logoutUser } from "../../services/authService";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -123,6 +124,14 @@ const Navbar = () => {
     }
   };
 
+  const handleLogout = async () => {
+    const response  = await logoutUser();
+    if(response?.success){
+      window.location.replace("/");
+    }
+    return response;
+  }
+
   return (
     <div className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-40">
       <h1 className="text-xl font-semibold text-slate-800 tracking-tight">
@@ -154,7 +163,7 @@ const Navbar = () => {
 
             <hr className="my-3 border-slate-100" />
 
-            <button className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 font-medium rounded-xl text-sm transition-colors">
+            <button className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 font-medium rounded-xl text-sm transition-colors" onClick={handleLogout}>
               Logout
             </button>
           </div>

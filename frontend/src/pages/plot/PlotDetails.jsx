@@ -1,21 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {useParams} from "react-router-dom"
 import { getPlotById } from "../../services/plotService";
 import {toast} from "react-toastify"
 import {setSelectedPlot} from "../../features/plot/plotSlice"
+import { subscribeToPlot } from "../../services/subscriptionService";
 const PlotDetails = () => {
     const {id} = useParams();
     const dispatch = useDispatch();
 
     const {selectedPlot} = useSelector((state)=>state.plot);
+    const {user} = useSelector((state)=>state.auth);
+    const [duration, setDuration] = useState(30);
+    const [loading, setLoading] = useState(false);
     useEffect(()=>{
         const fetchPlot = async () => {
             try{
             const response = await getPlotById(id);
             dispatch(setSelectedPlot(response.plot));
             }catch(error){
-                toast.error(`Enable to fetching plot, ${error?.response?.data?.message}`);
+                toast.error(`Unable to fetch plot, ${error?.response?.data?.message}`);
             }
         }
         fetchPlot();
@@ -23,6 +27,19 @@ const PlotDetails = () => {
 
     if(!selectedPlot){
         return <p className="p-6">Loading...</p>
+    }
+
+    const handleSubscribe = async () => {
+        try{
+            setLoading(true);
+            const dummyPaymentId = "6441fff1c9d440016c5b8b2";
+            await subscribeToPlot({plotId: id, duration, paymentId: dummyPaymentId});
+            toast.success("Subscribed successfully!");
+        }catch(error){
+            toast.error(`Subscription failed, ${error?.response?.data?.message}`);
+        }finally{
+            setLoading(false);
+        }
     }
   return (
     <>
@@ -70,6 +87,31 @@ const PlotDetails = () => {
                 {selectedPlot?.location?.coordinates[0]}
             </p>
         </div>
+        {
+            user?.role === "Subscriber" && selectedPlot.status === "available" && (
+                <div className="mt-6 bg-white shadow rounded p-4">
+                    <h2 className="text-lg font-semibold mb-4">Subscribe to this plot</h2>
+                    <div className="mb-4">
+                        <label htmlFor="duration" className="block text-sm font-medium text-gray-700">
+                            Duration (days):
+                        </label>
+                      <select name="duration" id="duration" value={duration} onChange={(e) => setDuration(parseInt(e.target.value))} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value={30}>30 days</option>
+                            <option value={60}>60 days</option>
+                            <option value={90}>90 days</option>
+                        </select>
+                    </div>
+                    <button
+                        onClick={handleSubscribe}
+                        disabled={loading}
+                        className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                    >
+                        {loading ? "Subscribing..." : "Subscribe"}
+                    </button>
+                </div>
+
+            )
+        }
       </div>
     </>
   )

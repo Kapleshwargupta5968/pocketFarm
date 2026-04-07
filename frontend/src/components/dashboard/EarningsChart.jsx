@@ -23,8 +23,8 @@ const EarningsChart = React.memo(({ data }) => {
                 <span className="text-xs font-medium px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">Monthly</span>
             </div>
        
-            <div className="w-full h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full h-75">
+                <ResponsiveContainer width="100%" height="100%" minHeight={1} minWidth={1}>
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
@@ -49,7 +49,7 @@ const EarningsChart = React.memo(({ data }) => {
                         <Tooltip content={<CustomTooltip />} />
                         <Area 
                             type="monotone" 
-                            dataKey="earnings" 
+                            dataKey="totalEarnings" 
                             stroke="#10b981" 
                             strokeWidth={3}
                             fillOpacity={1} 

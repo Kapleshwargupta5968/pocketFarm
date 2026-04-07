@@ -1,0 +1,30 @@
+import {createSlice} from '@reduxjs/toolkit';
+
+const initialState = {
+    subscriptions: [],
+    activeCount: 0,
+    loading: false,
+    error: null
+}
+
+const subscriptionSlice = createSlice({
+    name: 'subscription',
+    initialState,
+    reducers:{
+        setSubscriptions(state, action) {
+            state.subscriptions = action.payload;
+            state.activeCount = action.payload.filter(sub => sub.status === 'active').length;
+        },
+        setLoading(state, action) {
+            state.loading = action.payload;
+        },
+        removeSubscription(state, action) {
+            const id = action.payload;
+            state.subscriptions = state.subscriptions.map((sub) => (sub._id === id || sub.id === id) ? {...sub, status: 'cancelled'} : sub);  
+            state.activeCount = state.subscriptions.filter(sub => sub.status === 'active').length;
+        }
+    }
+});
+
+export const {setSubscriptions, setLoading, removeSubscription} = subscriptionSlice.actions;
+export default subscriptionSlice.reducer;

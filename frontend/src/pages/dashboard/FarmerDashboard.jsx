@@ -5,6 +5,7 @@ import Loader from "../../components/common/Loader"
 import { fetchDashboardData } from "../../features/dashboard/dashboardThunk";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
   Sprout, 
   CreditCard, 
@@ -33,13 +34,13 @@ const FarmerDashboard = () => {
       title: "Plot ID",
       dataIndex: "plotId",
       key: "plotId",
-      render: (val) => <span className="font-medium text-slate-700">{val}</span>
+      render: (val) => <span className="font-medium text-slate-700">{val?.toString().slice(-8)}</span>
     },
     {
-      title: "Plot Name",
-      dataIndex: "name",
-      key: "name",
-      render: (val) => <span className="font-semibold text-slate-800">{val}</span>
+      title: "Crop",
+      dataIndex: "crop",
+      key: "crop",
+      render: (val) => <span className="font-semibold text-slate-800">{val || "N/A"}</span>
     },
     {
       title: "Status",
@@ -61,29 +62,51 @@ const FarmerDashboard = () => {
       }
     },
     {
-      title: "Subscription",
-      dataIndex: "subscription",
-      key: "subscription",
-      render: (sub) => sub ? <span className="text-slate-600">{sub}</span> : <span className="text-slate-400 italic">None</span>
+      title: "Active Subscriptions",
+      dataIndex: "subscriptionCount",
+      key: "subscriptionCount",
+      render: (sub) => sub ? <span className="text-slate-600">{sub}</span> : <span className="text-slate-400 italic">0</span>
     },
     {
       title: "Price (INR)",
       dataIndex: "price",
       key: "price",
-      render: (val) => <span className="font-medium text-slate-700">₹{parseFloat(val).toLocaleString()}</span>
+      render: (val) => <span className="font-medium text-slate-700">₹{val ? parseFloat(val).toLocaleString() : "0"}</span>
     },
     {
-      title: "Earnings (INR)",
-      dataIndex: "earnings",
-      key: "earnings",
-      render: (val) => <span className="font-bold text-emerald-600">₹{parseFloat(val).toLocaleString()}</span>
+      title: "Total Earnings (INR)",
+      dataIndex: "totalEarnings",
+      key: "totalEarnings",
+      render: (val) => <span className="font-bold text-emerald-600">₹{val ? parseFloat(val).toLocaleString() : "0"}</span>
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1, 
+      transition: { type: "spring", stiffness: 300, damping: 24 } 
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-fade-in-up">
+    <motion.div 
+      className="max-w-7xl mx-auto space-y-6 pb-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 delay-100">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             Farmer Dashboard
@@ -91,17 +114,17 @@ const FarmerDashboard = () => {
           <p className="text-slate-500 mt-1">Here is what's happening with your farm today.</p>
         </div>
         <div className="flex items-center gap-3">
-            <button className="btn-secondary flex items-center gap-2">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-secondary flex items-center gap-2">
                Download Report
-            </button>
-            <button className="btn-primary flex items-center gap-2">
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary flex items-center gap-2">
                + Create New Plot
-            </button>
+            </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 delay-200">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard 
           icon={Sprout} 
           title="Total Plots" 
@@ -122,35 +145,37 @@ const FarmerDashboard = () => {
           title="Pending Requests" 
           value={stats?.pendingRequests || "0"} 
         />
-      </div>
+      </motion.div>
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 delay-300">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <EarningsChart data={chart || []} />
+          <motion.div variants={itemVariants}>
+            <EarningsChart data={chart || []} />
+          </motion.div>
           
-          <div className="animate-fade-in-up delay-300">
+          <motion.div variants={itemVariants}>
             <DataTable columns={columns} data={table || []} />
-          </div>
+          </motion.div>
         </div>
 
         {/* Side Panel or Promotions */}
-        <div className="lg:col-span-1 space-y-6">
+        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
           {/* We can place additional premium widgets here later. For now, an elevated quick-actions card. */}
-          <div className="card bg-gradient-to-br from-emerald-600 to-teal-800 text-white border-0">
+          <div className="card bg-linear-to-br from-emerald-600 to-teal-800 text-white border-0 transition-all hover:shadow-xl hover:-translate-y-1">
              <div className="mb-4 text-emerald-100">
                <Sprout size={32} />
              </div>
              <h3 className="text-xl font-bold mb-2">Grow your revenue</h3>
              <p className="text-emerald-100/80 text-sm mb-6">List more plots and attract premium subscribers from our network.</p>
-             <button className="bg-white text-teal-800 font-semibold px-4 py-2 rounded-xl text-sm hover:scale-105 active:scale-95 transition-transform w-full shadow-lg">
+             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-white text-teal-800 font-semibold px-4 py-2 rounded-xl text-sm w-full shadow-lg">
                 Explore Marketplaces
-             </button>
+             </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,8 +1,14 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const StatsCard = React.memo(({ title, value, icon: Icon }) => {
     return (
-        <div className="card group hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden relative">
+        <motion.div 
+            whileHover={{ y: -5, scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }} 
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            className="card group cursor-pointer overflow-hidden relative"
+        >
             <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gradient-to-br from-emerald-100/50 to-teal-50/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"/>
             <div className="flex items-center gap-4 relative z-10">
                 {Icon && (
@@ -15,8 +21,8 @@ const StatsCard = React.memo(({ title, value, icon: Icon }) => {
                     <p className="text-slate-800 font-bold text-3xl tracking-tight">{value}</p>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 });
 
-export default StatsCard;
+export default StatsCard;

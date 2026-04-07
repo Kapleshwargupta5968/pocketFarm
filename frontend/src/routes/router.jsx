@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, useLocation, useOutlet } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./protectedRoute";
 import Signup from "../pages/auth/Signup";
 import Signin from "../pages/auth/Signin";
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import Loader from "../components/common/Loader";
 
 const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
@@ -17,6 +18,7 @@ const Payments = lazy(() => import("../pages/payment/Payments"));
 const Home = lazy(() => import("../pages/home/Home"));
 const About = lazy(() => import("../pages/home/About"));
 const PlotDetails = lazy(() => import("../pages/plot/PlotDetails"));
+const MySubscriptions = lazy(() => import("../pages/subscription/mySubscriptions"));
 
 const withSuspense = (Component) => (
   <Suspense fallback={<Loader fullScreen />}>
@@ -24,7 +26,29 @@ const withSuspense = (Component) => (
   </Suspense>
 );
 
+export const RootLayout = () => {
+  const location = useLocation();
+  const element = useOutlet();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3 }}
+      >
+        {element && React.cloneElement(element, { key: location.pathname })}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 export const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
   {
     path: "/dashboard",
     element: (
@@ -100,6 +124,16 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "my-subscriptions",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute allowedRoles={["Subscriber"]}>
+              <MySubscriptions />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
         path: "payments",
         element: (
           <Suspense fallback={<Loader />}>
@@ -153,8 +187,10 @@ export const router = createBrowserRouter([
       </Suspense>
     ),
   },
-  {
-    path: "*",
-    element: <h1 className="p-6">404 Not Found</h1>,
-  },
+      {
+        path: "*",
+        element: <h1 className="p-6">404 Not Found</h1>,
+      },
+    ]
+  }
 ]);

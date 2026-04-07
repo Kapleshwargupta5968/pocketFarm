@@ -11,7 +11,7 @@ const PlotList = () => {
       const fetchPlots = async () => {
           try{
             const response = await getAllPlots();
-            dispatch(setPlots(response?.data || []));
+            dispatch(setPlots(response?.plots || []));
         }catch(error){
             console.error("Error fetching plots:", error);
         }
@@ -30,7 +30,7 @@ const PlotList = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {
                         plots.map((plot) => (
-                            <div key={plot._id} onClick={()=>navigate(`/plots/${plot._id}`)} className="border rounded-lg p-4 shadow">
+                            <div key={plot._id} onClick={()=>navigate(`/dashboard/plots/${plot._id}`)} className="border rounded-lg p-4 shadow cursor-pointer hover:shadow-lg transition-shadow">
 
                               {
                                 plot.images?.[0] && (
@@ -42,7 +42,7 @@ const PlotList = () => {
                               }
                                 <h2 className="font-semibold">Plot #{plot.plotNumber}</h2>
                                 <p>Size: {plot.size}</p>
-                                <p>Price: {plot.price}</p>
+                                <p>Price: ₹{plot.price}</p>
                                 <p className={`text-sm font-medium ${plot.status === "Available" ? "text-green-600" : plot.status === "Subscribed" ? "text-blue-600" : "text-gray-600"}`}>Status: {plot.status}</p>
                                 
                                 <p className="text-sm text-gray-500">

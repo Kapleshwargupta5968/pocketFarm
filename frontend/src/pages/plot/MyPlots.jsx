@@ -105,7 +105,7 @@ const MyPlots = () => {
                 className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 overflow-hidden group border border-slate-100"
               >
                 {/* Image Area */}
-                <div className="relative h-44 bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden">
+                <div className="relative h-44 bg-linear-to-br from-green-50 to-emerald-100 overflow-hidden">
                   {plot.images && plot.images.length > 0 ? (
                     <>
                       <img

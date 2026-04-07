@@ -216,14 +216,19 @@ const getDashboardTable = async (req, res) => {
                                 }
                             }
                         },
-                        totalEarnings: {
-                            $sum: {
-                                $cond: [
-                                    { $eq: ["$subscriptions.status", "Active"] },
-                                    "$price",
-                                    0
-                                ]
+                        activeSubscriptions: {
+                            $filter: {
+                                input: "$subscriptions",
+                                as: "sub",
+                                cond: { $eq: ["$$sub.status", "Active"] }
                             }
+                        }
+                    }
+                },
+                {
+                    $addFields: {
+                        totalEarnings: {
+                            $sum: "$activeSubscriptions.amount"
                         }
                     }
                 }
@@ -233,8 +238,9 @@ const getDashboardTable = async (req, res) => {
                 plotId: plot._id,
                 crop: plot.currentCrop || "N/A",
                 status: plot.status,
-                subscription: plot.subscriptionCount,
-                earnings: plot.totalEarnings || 0
+                subscriptionCount: plot.subscriptionCount,
+                price: plot.price,
+                totalEarnings: plot.totalEarnings || 0
             }));
 
             return res.status(200).json({
@@ -265,7 +271,7 @@ const getDashboardTable = async (req, res) => {
                         plotId: "$plotDetails._id",
                         crop: "$plotDetails.currentCrop",
                         status: "$status",
-                        price: "$plotDetails.price"
+                        price: "$amount"
                     }
                 }
             ]);
@@ -274,8 +280,7 @@ const getDashboardTable = async (req, res) => {
                 plotId: sub.plotId,
                 crop: sub.crop || "N/A",
                 status: sub.status,
-                subscription: sub.price,
-                earnings: sub.price
+                price: sub.price
             }));
 
             return res.status(200).json({

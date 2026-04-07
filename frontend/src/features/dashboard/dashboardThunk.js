@@ -3,13 +3,25 @@ import { getDashboardStats, getEarningData, getDashboardTable } from '../../serv
 
 export const fetchDashboardData = createAsyncThunk(
   'dashboard/fetchDashboardData',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
-      const [stats, chart, tableData] = await Promise.all([
+      const { auth } = getState();
+      const role = auth?.user?.role;
+
+      const [stats, tableData] = await Promise.all([
         getDashboardStats(),
-        getEarningData(),
         getDashboardTable()
       ]);
+
+      let chart = null;
+      if (role === 'Farmer') {
+        try {
+          chart = await getEarningData();
+        } catch (e) {
+          console.warn('Could not fetch earnings chart:', e.message);
+        }
+      }
+
       return { stats, chart, tableData };
     } catch (error) {
       return rejectWithValue(error.message);
