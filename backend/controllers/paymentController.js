@@ -47,8 +47,11 @@ const createOrder = async (req, res) => {
             });
         }
 
+        const amountInPaise = plot.price * 100;
+        const maxTestAmount = 50000000;
+
         const options = {
-            amount: plot.price * 100,
+            amount: Math.min(amountInPaise, maxTestAmount),
             currency: "INR",
             receipt: `receipt_${Date.now()}`,
             payment_capture: 1
@@ -492,8 +495,11 @@ const retryPayment = async (req, res) => {
         }
 
         // Create new Razorpay order
+        const amountInPaise = plot.price * 100;
+        const maxTestAmount = 50000000; // Razorpay test limit: 5 lakh INR
+
         const newOrder = await razorpay.orders.create({
-            amount: plot.price * 100,
+            amount: Math.min(amountInPaise, maxTestAmount),
             currency: "INR",
             receipt: `payment_${Date.now()}`
         });

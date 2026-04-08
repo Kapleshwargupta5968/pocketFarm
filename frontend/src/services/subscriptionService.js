@@ -16,7 +16,7 @@ export const getSubscriptionById = async (id) => {
 }
 
 export const cancelSubscription = async (id) => {
-    const response = await axiosInstance.delete(`/subscriptions/${id}`);
+    const response = await axiosInstance.delete(`/subscriptions/${id}/cancel`);
     return response.data;
 };
 

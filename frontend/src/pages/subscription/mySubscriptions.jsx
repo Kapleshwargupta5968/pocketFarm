@@ -6,15 +6,21 @@ import { toast } from "react-toastify";
 const MySubscriptions = () => {
     const dispatch = useDispatch();
     const {subscriptions, loading} = useSelector((state)=>state.subscription);
-    useEffect(() => {
-        const fetchSubscriptions = async () => {
+    const [isRefetching, setIsRefetching] = useState(false);
+
+    const fetchSubscriptions = async () => {
         try{
+            setIsRefetching(true);
             const response = await getMySubscriptions();
             dispatch(setSubscriptions(response?.subscriptions || []));
         }catch(error){
             toast.error("Failed to fetch subscriptions", error);
+        }finally{
+            setIsRefetching(false);
         }
-        }
+    };
+
+    useEffect(() => {
         fetchSubscriptions();
     }, [dispatch]);
 
@@ -32,7 +38,16 @@ const MySubscriptions = () => {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-bold mb-4">My Subscriptions</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">My Subscriptions</h1>
+          <button
+            onClick={fetchSubscriptions}
+            disabled={isRefetching}
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRefetching ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
         {loading ? (
           <p>Loading...</p>
         ) : subscriptions.length === 0 ? (
@@ -46,7 +61,7 @@ const MySubscriptions = () => {
                   <p>Size: {subscription.plot?.size}</p>
                   <p>Price: ${subscription.plot?.price?.toFixed(2)}</p>
                   <p>Status: {""}
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${subscription.status === 'active' ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${subscription.status?.toLowerCase() === 'active' ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}`}>
                       {subscription.status}
                     </span>
                   </p>
@@ -59,7 +74,7 @@ const MySubscriptions = () => {
                     {new Date(subscription.endDate).toLocaleDateString()}
                   </p>
 
-                  {subscription.status === 'active' && (        
+                  {subscription.status?.toLowerCase() === 'active' && (        
                   <button
                     onClick={() => handleCancel(subscription._id || subscription.id)}
                     className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
