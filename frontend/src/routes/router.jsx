@@ -71,7 +71,9 @@ export const router = createBrowserRouter([
         path: "plots",
         element: (
           <Suspense fallback={<Loader />}>
-            <PlotList />
+            <ProtectedRoute allowedRoles={["Subscriber"]}>
+              <PlotList />
+            </ProtectedRoute>
           </Suspense>
         ),
       },
@@ -79,7 +81,9 @@ export const router = createBrowserRouter([
         path: "plots/:id",
         element: (
           <Suspense fallback={<Loader />}>
-            <PlotDetails />
+            <ProtectedRoute allowedRoles={["Subscriber"]}>
+              <PlotDetails />
+            </ProtectedRoute>
           </Suspense>
         ),
       },

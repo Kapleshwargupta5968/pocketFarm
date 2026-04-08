@@ -44,7 +44,7 @@ const CreatePlot = () => {
             await createPlot(formData);
             toast.success("Plot created successfully");
             setLoading(false);
-            navigate("/plots");
+            navigate("/dashboard");
         }catch(error){
             toast.error(error?.response?.data?.message || "Failed to create plot"); 
             setLoading(false);
