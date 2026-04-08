@@ -10,8 +10,10 @@ function App({children}) {
   const {user} = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if(user?._id){
-      socket.emit("register", user._id);
+    const userId = user?.id || user?._id;
+    if(userId){
+      console.log("📱 Registering user with socket:", userId);
+      socket.emit("register", userId);
     }
 
     return () => {

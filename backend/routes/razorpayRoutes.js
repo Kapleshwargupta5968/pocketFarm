@@ -7,16 +7,21 @@ const {
     getMyPayment,
     getPaymentById,
     handleWebhook,
-    retryPayment
+    retryPayment,
+    getFarmerEarnings
 } = require("../controllers/paymentController");
 
-const { authProtector } = require("../middlewares/authMiddleware");
+const { authProtector, authorizeRoles } = require("../middlewares/authMiddleware");
 
 router.post("/create-order", authProtector, createOrder);
 
 router.post("/verify-payment", authProtector, verifyPayment);
-router.get("/history", authProtector, getMyPayment);
 
+// Specific routes BEFORE parametric routes
+router.get("/history", authProtector, getMyPayment);
+router.get("/farmer/earnings", authProtector, authorizeRoles("Farmer"), getFarmerEarnings);
+
+// Parametric routes after specific routes
 router.get("/:id", authProtector, getPaymentById);
 router.post("/webhook", handleWebhook);
 

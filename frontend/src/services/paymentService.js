@@ -21,7 +21,7 @@ export const verifyPayment = async (paymentData) => {
 
 export const getMyPayment = async () => {
     try {
-        const response = await axiosInstance.get("/payment");
+        const response = await axiosInstance.get("/payment/history");
         return response?.data;
     } catch (error) {
         throw error;
@@ -40,6 +40,15 @@ export const getPaymentById = async (paymentId) => {
 export const retryPayment = async (paymentId) => {
     try {
         const response = await axiosInstance.post(`/payment/retry/${paymentId}`);
+        return response?.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const getFarmerEarnings = async () => {
+    try {
+        const response = await axiosInstance.get("/payment/farmer/earnings");
         return response?.data;
     } catch (error) {
         throw error;

@@ -17,7 +17,12 @@ const authSlice = createSlice({
 
         authSuccess: (state, action) => {
             state.loading = false;
-            state.user = action.payload;
+            // Normalize user object to use _id instead of id for consistency
+            const userData = action.payload;
+            state.user = {
+                ...userData,
+                _id: userData.id || userData._id
+            };
         },
 
         authFailure: (state, action) => {

@@ -13,15 +13,18 @@ const initSocket = (httpServer) => {
     });
 
     io.on("connection", (socket) => {
-        console.log("A user connected: " + socket.id);
+        // console.log("✅ Socket connected:", socket.id);
 
         socket.on("register", (userId) => {
             users[userId] = socket.id;
+            // console.log("📍 User registered:", userId, "→ Socket:", socket.id);
+            // console.log("📊 Active users:", Object.keys(users));
         });
 
         socket.on("disconnect", () => {
             for (const userId in users) {
                 if (users[userId] === socket.id) {
+                    // console.log("❌ User disconnected:", userId);
                     delete users[userId];
                     break;
                 }

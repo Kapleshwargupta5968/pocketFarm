@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Plot = require("../models/plot");
 const Subscription = require("../models/subscription");
 const Payment = require("../models/payment");
+const User = require("../models/user");
 const { createNotification } = require("../services/notificationServices");
 
 const createOrder = async (req, res) => {
@@ -200,7 +201,10 @@ const verifyPayment = async (req, res) => {
             await plot.save();
         }
 
-        // Create notification
+        // Get subscriber details
+        const subscriber = await User.findById(req.user._id).select("name email");
+
+        // Create notification for SUBSCRIBER
         try {
             await createNotification({
                 user: req.user._id,
@@ -209,7 +213,19 @@ const verifyPayment = async (req, res) => {
                 message: plot ? `Your subscription to plot ${plot.plotNumber} has been confirmed` : "Your subscription has been confirmed"
             });
         } catch (notificationError) {
-            console.error("Notification error:", notificationError);
+            console.error("Subscriber payment notification error:", notificationError);
+        }
+
+        // Create notification for FARMER (plot owner)
+        try {
+            await createNotification({
+                user: plot.farmer,
+                title: "Payment Received ✅",
+                type: "SUBSCRIPTION",
+                message: `${subscriber?.name || "A subscriber"} just paid ₹${payment.amount} for plot ${plot.plotNumber}. Subscription active until ${new Date(endDate).toLocaleDateString('en-IN')}`
+            });
+        } catch (notificationError) {
+            console.error("Farmer payment notification error:", notificationError);
         }
 
         return res.status(200).json({
@@ -529,11 +545,69 @@ const retryPayment = async (req, res) => {
     }
 };
 
+const getFarmerEarnings = async (req, res) => {
+    try {
+        // Verify user is authenticated
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({
+                success: false,
+                message: "Not authenticated"
+            });
+        }
+
+        // Get all plots owned by this farmer
+        const plots = await Plot.find({ farmer: req.user._id });
+        
+        if (plots.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No plots found",
+                earnings: [],
+                totalEarnings: 0,
+                totalSubscriptions: 0,
+                activeSubscriptions: 0
+            });
+        }
+
+        const plotIds = plots.map(plot => plot._id);
+
+        // Get all subscriptions for these plots
+        const subscriptions = await Subscription.find({
+            plot: { $in: plotIds }
+        })
+            .populate("user", "name email")
+            .populate("plot", "plotNumber status")
+            .populate("paymentId", "razorpayPaymentId status createdAt")
+            .sort({ createdAt: -1 });
+
+        // Calculate statistics
+        const totalEarnings = subscriptions.reduce((sum, sub) => sum + (sub.amount || 0), 0);
+        const activeSubscriptions = subscriptions.filter(sub => sub.status === "Active").length;
+
+        return res.status(200).json({
+            success: true,
+            count: subscriptions.length,
+            earnings: subscriptions,
+            totalEarnings,
+            totalSubscriptions: subscriptions.length,
+            activeSubscriptions
+        });
+
+    } catch (error) {
+        console.error("Get farmer earnings error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: `Internal server error: ${error.message}`
+        });
+    }
+};
+
 module.exports = {
     createOrder,
     verifyPayment,
     getMyPayment,
     getPaymentById,
     handleWebhook,
-    retryPayment
+    retryPayment,
+    getFarmerEarnings
 };

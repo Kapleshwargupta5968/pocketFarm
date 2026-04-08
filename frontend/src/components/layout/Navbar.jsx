@@ -8,7 +8,7 @@ import {
   deleteNotification
 } from "../../services/notificationService";
 
-import { setNotifications } from "../../features/notification/notificationSlice";
+import { setNotifications, addNotification, updateNotificationRead, removeNotification } from "../../features/notification/notificationSlice";
 import { UserOutlined } from "@ant-design/icons";
 
 import NotificationDropdown from "../notification/NotificationDropdown";
@@ -26,60 +26,63 @@ const Navbar = () => {
   const [openProfile, setOpenProfile] = useState(false);
 
   useEffect(() => {
+    // Get user ID - backend returns 'id', but some places might expect '_id'
+    const userId = user?.id || user?._id;
+    
+    if (!userId) {
+      console.log("⏳ Waiting for user to load...");
+      return;
+    }
+    
     const fetchNotifications = async () => {
       try {
+        console.log("📥 Fetching notifications for user:", userId);
+        
         const data = await getMyNotifications();
-
+        console.log("📊 Notifications fetched:", data);
+        
+        const notificationsArray = data?.notifications || [];
+        console.log("📋 Notifications count:", notificationsArray.length);
+        
         dispatch(
           setNotifications({
-            notifications: data.notifications || [],
-            count: (data.notifications || []).filter((n) => !n.isRead).length
+            notifications: notificationsArray,
+            count: notificationsArray.filter((n) => !n.isRead).length
           })
         );
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("❌ Error fetching notifications:", error);
       }
     };
 
+    // Fetch immediately on user load
     fetchNotifications();
-  }, [dispatch]);
+    
+    // Then refetch every 5 seconds ONLY if user is loaded
+    const interval = setInterval(fetchNotifications, 5000);
+    
+    return () => clearInterval(interval);
+  }, [dispatch, user?.id, user?._id]);
 
   useEffect(() => {
     const handleNewNotification = (notification) => {
-      const exists = notifications.some((n) => n._id === notification._id);
-      if (exists) return;
-
-      const updated = [notification, ...notifications];
-      dispatch(
-        setNotifications({
-          notifications: updated,
-          count: updated.filter((n) => !n.isRead).length
-        })
-      );
+      console.log("🔔 New notification received:", notification);
+      dispatch(addNotification(notification));
     };
 
     socket.on("newNotification", handleNewNotification);
+    console.log("✅ Notification listener attached");
 
     return () => {
       socket.off("newNotification", handleNewNotification);
     };
 
-  }, [notifications, dispatch]);
+  }, [dispatch]);
 
   const handleReadNotification = async (id) => {
     try {
       await markAsRead(id);
-
-      const updated = notifications.map((n) =>
-        n._id === id ? { ...n, isRead: true } : n
-      );
-
-      dispatch(
-        setNotifications({
-          notifications: updated,
-          count: updated.filter((n) => !n.isRead).length
-        })
-      );
+      dispatch(updateNotificationRead(id));
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -110,15 +113,7 @@ const Navbar = () => {
   const handleDeleteNotification = async (id) => {
     try {
       await deleteNotification(id);
-
-      const updated = notifications.filter((n) => n._id !== id);
-
-      dispatch(
-        setNotifications({
-          notifications: updated,
-          count: updated.filter((n) => !n.isRead).length
-        })
-      );
+      dispatch(removeNotification(id));
     } catch (error) {
       console.error("Error deleting notification:", error);
     }
@@ -203,6 +198,8 @@ const Navbar = () => {
             onRead={handleReadNotification}
             onDelete={handleDeleteNotification}
             onMarkAll={handleMarkAllRead}
+            isOpen={openNotifications}
+            onClose={() => setOpenNotifications(false)}
           />
         )}
       </div>

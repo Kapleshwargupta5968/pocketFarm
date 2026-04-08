@@ -1,6 +1,7 @@
 const Subscription = require("../models/subscription");
 const Plot = require("../models/plot");
 const Payment = require("../models/payment");
+const User = require("../models/user");
 const { createNotification } = require("../services/notificationServices");
 const mongoose = require("mongoose");
 
@@ -101,19 +102,41 @@ const subscribePlot = async (req, res) => {
         });
 
         // Update plot status
-        plot.status = "Subscribed";
-        await plot.save();
+        if (plot) {
+            plot.status = "Subscribed";
+            await plot.save();
+        }
 
-        // Create notification
+        // Get subscriber details
+        const subscriber = await User.findById(req.user._id).select("name email");
+
+        // Create notification for SUBSCRIBER
         try {
+            console.log("🔔 Attempting to create notification for subscriber:", req.user._id);
             await createNotification({
                 user: req.user._id,
                 title: "Subscription Successful",
                 message: `You have successfully subscribed to plot ${plot.plotNumber} for ${duration} days`,
                 type: "SUBSCRIPTION"
             });
+            console.log("✅ Subscriber notification created");
         } catch (notificationError) {
-            console.error("Notification creation error:", notificationError);
+            console.error("❌ Subscriber notification error:", notificationError.message);
+        }
+
+        // Create notification for FARMER (plot owner)
+        try {
+            console.log("🚜 Plot object:", { plotId, plotNumber: plot.plotNumber, farmerUserId: plot.farmer });
+            console.log("🚜 Creating notification for farmer:", plot.farmer);
+            await createNotification({
+                user: plot.farmer,
+                title: "New Subscription! 🎉",
+                message: `${subscriber?.name || "A user"} has subscribed to your plot ${plot.plotNumber} for ${duration} days. Amount: ₹${payment.amount}`,
+                type: "SUBSCRIPTION"
+            });
+            console.log("✅ Farmer notification created successfully");
+        } catch (notificationError) {
+            console.error("❌ Farmer notification error:", notificationError.message);
         }
 
         return res.status(201).json({
@@ -261,11 +284,13 @@ const cancelSubscription = async (req, res) => {
         await subscription.save();
 
         // Update plot status back to Available
-        await Plot.findByIdAndUpdate(subscription.plot, { status: "Available" });
+        const plot = await Plot.findByIdAndUpdate(subscription.plot, { status: "Available" }, { new: true });
 
-        // Create notification
+        // Get subscriber details
+        const subscriber = await User.findById(req.user._id).select("name");
+
+        // Create notification for SUBSCRIBER
         try {
-            const plot = await Plot.findById(subscription.plot);
             await createNotification({
                 user: req.user._id,
                 title: "Subscription Cancelled",
@@ -273,7 +298,19 @@ const cancelSubscription = async (req, res) => {
                 type: "SUBSCRIPTION"
             });
         } catch (notificationError) {
-            console.error("Notification creation error:", notificationError);
+            console.error("Subscriber cancellation notification error:", notificationError);
+        }
+
+        // Create notification for FARMER (plot owner)
+        try {
+            await createNotification({
+                user: plot.farmer,
+                title: "Subscription Cancelled 📋",
+                message: `${subscriber?.name || "A subscriber"} has cancelled their subscription to plot ${plot.plotNumber}`,
+                type: "SUBSCRIPTION"
+            });
+        } catch (notificationError) {
+            console.error("Farmer cancellation notification error:", notificationError);
         }
 
         return res.status(200).json({
@@ -363,14 +400,25 @@ const renewSubscription = async (req, res) => {
         // Create notification
         try {
             const plot = await Plot.findById(subscription.plot);
+            const subscriber = await User.findById(req.user._id).select("name");
+            
+            // Notification for SUBSCRIBER
             await createNotification({
                 user: req.user._id,
                 title: "Subscription Renewed",
-                message: `Your subscription to plot ${plot.plotNumber} has been renewed until ${newEndDate.toDateString()}`,
+                message: `Your subscription to plot ${plot.plotNumber} has been renewed until ${newEndDate.toLocaleDateString('en-IN')}`,
+                type: "SUBSCRIPTION"
+            });
+
+            // Notification for FARMER
+            await createNotification({
+                user: plot.farmer,
+                title: "Subscription Renewed ✅",
+                message: `${subscriber?.name || "A subscriber"} has renewed their subscription to plot ${plot.plotNumber}. New end date: ${newEndDate.toLocaleDateString('en-IN')}. Amount: ₹${payment.amount}`,
                 type: "SUBSCRIPTION"
             });
         } catch (notificationError) {
-            console.error("Notification creation error:", notificationError);
+            console.error("Renewal notification error:", notificationError);
         }
 
         return res.status(200).json({

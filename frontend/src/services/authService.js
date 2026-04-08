@@ -22,9 +22,12 @@ export const loginUser = async (userData) => {
 
 export const getMe = async () => {
     try{
+        console.log("🔐 Calling /auth/me endpoint...");
         const response = await axiosInstance.get("/auth/me");
+        console.log("✅ User fetched:", response?.data?.user);
         return response?.data?.user;
     }catch(error){
+        console.error("❌ getMe error:", error.message);
         throw error;
     }
 };

@@ -141,7 +141,7 @@ export const router = createBrowserRouter([
         path: "payments",
         element: (
           <Suspense fallback={<Loader />}>
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["Subscriber", "Farmer"]}>
               <Payments />
             </ProtectedRoute>
           </Suspense>
