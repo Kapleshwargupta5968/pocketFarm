@@ -20,7 +20,7 @@ const subscriptionSlice = createSlice({
         },
         removeSubscription(state, action) {
             const id = action.payload;
-            state.subscriptions = state.subscriptions.map((sub) => (sub._id === id || sub.id === id) ? {...sub, status: 'Cancelled'} : sub);  
+            state.subscriptions = state.subscriptions.filter((sub) => sub._id !== id && sub.id !== id);
             state.activeCount = state.subscriptions.filter(sub => sub.status?.toLowerCase() === 'active').length;
         }
     }

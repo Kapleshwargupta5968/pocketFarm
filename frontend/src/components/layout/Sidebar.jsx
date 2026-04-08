@@ -15,7 +15,7 @@ const Sidebar = () => {
     Subscriber: [
       { id: 1, name: "Dashboard", path: "/dashboard" },
       { id: 2, name: "Browse Plots", path: "/dashboard/plots" },
-      { id: 3, name: "My Subscriptions", path: "/dashboard/subscriptions" },
+      { id: 3, name: "My Subscriptions", path: "/dashboard/my-subscriptions" },
       { id: 4, name: "Payment History", path: "/dashboard/payments" },
     ],
   };
@@ -25,7 +25,7 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-white border-r border-slate-100 h-full p-5 flex flex-col shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-10 relative">
       <div className="flex items-center gap-3 mb-8 px-2 mt-2">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+        <div className="w-8 h-8 rounded-xl bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
           🌱
         </div>
         <h2 className="text-xl font-bold text-slate-800 tracking-tight">PocketFarm</h2>

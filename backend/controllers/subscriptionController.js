@@ -148,7 +148,14 @@ const getMySubscriptions = async (req, res) => {
         }
 
         const subscriptions = await Subscription.find({ user: req.user._id })
-            .populate("plot", "plotNumber currentCrop size price status location")
+            .populate({
+                path: "plot",
+                select: "_id plotNumber currentCrop size price status location farmer images sowingDate expectedHarvestDate",
+                populate: {
+                    path: "farmer",
+                    select: "name email"
+                }
+            })
             .populate("paymentId", "amount razorpayPaymentId")
             .sort({ createdAt: -1 });
 
